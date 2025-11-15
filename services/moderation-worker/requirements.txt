@@ -1,0 +1,12 @@
+numpy==1.26.4
+torch==2.1.1
+transformers==4.35.2
+onnxruntime==1.16.3
+optimum[onnxruntime]==1.15.0
+underthesea==6.7.0
+langdetect==1.0.9
+sqlalchemy==2.0.23
+psycopg2-binary==2.9.9
+aio-pika==9.3.1
+python-dotenv==1.0.0
+

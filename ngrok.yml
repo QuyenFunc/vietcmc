@@ -1,0 +1,8 @@
+version: 2
+authtoken: 34dIdqYYdes6XGqyEnLHN1rhrbA_2dYuumJoARuGQnE6zNjrW
+
+tunnels:
+  vietcms:
+    addr: 80
+    proto: http
+

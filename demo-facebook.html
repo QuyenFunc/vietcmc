@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demo Facebook Comments - VietCMS Moderation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #f0f2f5;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 680px;
+            margin: 0 auto;
+        }
+
+        /* Facebook-style Post Card */
+        .post-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .post-header {
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+        }
+
+        .post-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            margin-right: 12px;
+        }
+
+        .post-author-info {
+            flex: 1;
+        }
+
+        .post-author-name {
+            font-weight: 600;
+            font-size: 15px;
+            color: #050505;
+        }
+
+        .post-time {
+            font-size: 13px;
+            color: #65676b;
+        }
+
+        .post-content {
+            padding: 0 16px 12px;
+            font-size: 15px;
+            line-height: 1.3333;
+            color: #050505;
+        }
+
+        .post-image {
+            width: 100%;
+            display: block;
+        }
+
+        .post-stats {
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            color: #65676b;
+            font-size: 15px;
+            border-bottom: 1px solid #e4e6eb;
+        }
+
+        .post-actions {
+            padding: 4px 16px;
+            display: flex;
+            border-bottom: 1px solid #e4e6eb;
+        }
+
+        .action-btn {
+            flex: 1;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #65676b;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            border-radius: 4px;
+            transition: background 0.2s;
+        }
+
+        .action-btn:hover {
+            background: #f2f3f5;
+        }
+
+        .action-btn svg {
+            width: 18px;
+            height: 18px;
+            margin-right: 8px;
+        }
+
+        /* Comments Section */
+        .comments-section {
+            padding: 12px 16px;
+        }
+
+        .comment-input-wrapper {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 16px;
+        }
+
+        .comment-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 14px;
+            margin-right: 8px;
+            flex-shrink: 0;
+        }
+
+        .comment-input-container {
+            flex: 1;
+            position: relative;
+        }
+
+        .comment-input {
+            width: 100%;
+            padding: 8px 12px;
+            background: #f0f2f5;
+            border: 1px solid transparent;
+            border-radius: 18px;
+            font-size: 15px;
+            font-family: inherit;
+            resize: none;
+            min-height: 36px;
+            max-height: 150px;
+            line-height: 20px;
+            transition: background 0.2s;
+        }
+
+        .comment-input:focus {
+            outline: none;
+            background: #fff;
+            border-color: #1877f2;
+        }
+
+        .comment-input::placeholder {
+            color: #65676b;
+        }
+
+        .comment-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 8px;
+            justify-content: flex-end;
+        }
+
+        .btn-comment {
+            padding: 6px 16px;
+            background: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-comment:hover:not(:disabled) {
+            background: #166fe5;
+        }
+
+        .btn-comment:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-cancel {
+            padding: 6px 16px;
+            background: #e4e6eb;
+            color: #050505;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 15px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-cancel:hover {
+            background: #d8dadf;
+        }
+
+        /* Comments List */
+        .comments-list {
+            margin-top: 16px;
+        }
+
+        .comment-item {
+            display: flex;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .comment-content {
+            flex: 1;
+        }
+
+        .comment-bubble {
+            background: #f0f2f5;
+            padding: 8px 12px;
+            border-radius: 18px;
+            display: inline-block;
+            max-width: 100%;
+        }
+
+        .comment-author {
+            font-weight: 600;
+            font-size: 13px;
+            color: #050505;
+            margin-bottom: 2px;
+        }
+
+        .comment-text {
+            font-size: 15px;
+            color: #050505;
+            line-height: 1.3333;
+            word-wrap: break-word;
+        }
+
+        .comment-meta {
+            padding-left: 12px;
+            margin-top: 4px;
+            font-size: 12px;
+            color: #65676b;
+            display: flex;
+            gap: 12px;
+        }
+
+        .comment-time {
+            font-weight: 600;
+        }
+
+        /* Blocked Comment */
+        .comment-blocked {
+            background: #fee;
+            border: 1px solid #fcc;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 12px;
+        }
+
+        .blocked-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #d93025;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .blocked-header svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .blocked-text {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .blocked-reason {
+            font-size: 13px;
+            background: white;
+            padding: 8px;
+            border-radius: 4px;
+            color: #d93025;
+        }
+
+        /* Processing State */
+        .comment-processing {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+
+        .processing-indicator {
+            display: inline-block;
+            margin-left: 8px;
+            font-size: 13px;
+            color: #1877f2;
+        }
+
+        /* Warning Banner */
+        .warning-banner {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .warning-banner svg {
+            width: 24px;
+            height: 24px;
+            color: #856404;
+            flex-shrink: 0;
+        }
+
+        .warning-text {
+            flex: 1;
+            color: #856404;
+            font-size: 14px;
+        }
+
+        /* Config Panel */
+        .config-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .config-title {
+            font-weight: 600;
+            font-size: 17px;
+            margin-bottom: 12px;
+            color: #050505;
+        }
+
+        .config-group {
+            margin-bottom: 12px;
+        }
+
+        .config-label {
+            display: block;
+            font-size: 13px;
+            color: #65676b;
+            margin-bottom: 4px;
+        }
+
+        .config-input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ccd0d5;
+            border-radius: 6px;
+            font-size: 15px;
+            font-family: inherit;
+        }
+
+        .config-input:focus {
+            outline: none;
+            border-color: #1877f2;
+        }
+
+        .stats-panel {
+            background: white;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 12px;
+            background: #f0f2f5;
+            border-radius: 8px;
+        }
+
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #1877f2;
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: #65676b;
+            margin-top: 4px;
+        }
+
+        /* Notification Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            z-index: 1000;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+            }
+            to {
+                transform: translateX(0);
+            }
+        }
+
+        .toast.success {
+            border-left: 4px solid #28a745;
+        }
+
+        .toast.error {
+            border-left: 4px solid #dc3545;
+        }
+
+        .toast.warning {
+            border-left: 4px solid #ffc107;
+        }
+
+        /* Spinner */
+        .spinner {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #1877f2;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Quick Test Buttons */
+        .test-btn {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .test-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .test-btn:active {
+            transform: translateY(0);
+        }
+
+        .test-allowed {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .test-allowed:hover {
+            background: #c3e6cb;
+        }
+
+        .test-reject {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .test-reject:hover {
+            background: #f5c6cb;
+        }
+
+        .header-banner {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .header-banner h1 {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .header-banner p {
+            font-size: 15px;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header-banner">
+            <h1>🛡️ Demo Facebook Comments với VietCMS Moderation</h1>
+            <p>Bình luận của bạn sẽ được kiểm duyệt tự động và ngăn chặn nếu vi phạm</p>
+        </div>
+
+        <!-- Config Panel -->
+        <div class="config-panel">
+            <div class="config-title">⚙️ Cấu hình API</div>
+            <div class="config-group">
+                <label class="config-label">API URL</label>
+                <input type="text" class="config-input" id="apiUrl" value="http://localhost" placeholder="http://localhost">
+            </div>
+            <div class="config-group">
+                <label class="config-label">API Key</label>
+                <input type="text" class="config-input" id="apiKey" value="test_api_key_vietcms_2024_abcdef123456" placeholder="Nhập API key của bạn">
+            </div>
+            <div class="config-group">
+                <label class="config-label">HMAC Secret</label>
+                <input type="text" class="config-input" id="hmacSecret" value="test_hmac_secret_vietcms_2024_xyz789" placeholder="Nhập HMAC secret của bạn">
+            </div>
+        </div>
+
+        <!-- Quick Test Panel -->
+        <div class="post-card" style="margin-bottom: 16px;">
+            <div class="config-title" style="padding: 12px 16px; border-bottom: 1px solid #e4e6eb;">
+                🧪 Test Nhanh - Các Trường Hợp Mạng Xã Hội
+            </div>
+            <div style="padding: 12px 16px;">
+                <div style="margin-bottom: 16px;">
+                    <div style="font-weight: 600; margin-bottom: 8px; color: #28a745;">✅ Nên ĐƯỢC DUYỆT (Legitimate Content):</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        <button onclick="quickTest('Bài viết rất hay và bổ ích! Cảm ơn tác giả 👍')" class="test-btn test-allowed">👏 Khen ngợi</button>
+                        <button onclick="quickTest('Video này thật tuyệt vời, đã subscribe kênh! 🔥')" class="test-btn test-allowed">🎥 Ủng hộ</button>
+                        <button onclick="quickTest('Quan điểm sâu sắc, tôi hoàn toàn đồng ý')" class="test-btn test-allowed">💭 Đồng tình</button>
+                        <button onclick="quickTest('Ý kiến này chưa thuyết phục, cần thêm dẫn chứng')" class="test-btn test-allowed">💬 Phê bình xây dựng</button>
+                        <button onclick="quickTest('Chính sách này có nhiều bất cập cần xem xét lại')" class="test-btn test-allowed">🏛️ Phê bình chính sách</button>
+                        <button onclick="quickTest('Lập luận còn yếu, cần nghiên cứu kỹ hơn')" class="test-btn test-allowed">📚 Góp ý học thuật</button>
+                        <button onclick="quickTest('Diễn xuất tệ quá, phim không hay')" class="test-btn test-allowed">🎬 Phê bình phim</button>
+                        <button onclick="quickTest('Đội bóng chơi tệ, HLV nên từ chức')" class="test-btn test-allowed">⚽ Phê bình thể thao</button>
+                        <button onclick="quickTest('Ý kiến này ngu ngốc, không có cơ sở')" class="test-btn test-allowed">🤔 Phê bình ý kiến</button>
+                        <button onclick="quickTest('👎👎👎')" class="test-btn test-allowed">😡 Emoji tiêu cực</button>
+                    </div>
+                </div>
+                
+                <div>
+                    <div style="font-weight: 600; margin-bottom: 8px; color: #dc3545;">❌ Nên BỊ CHẶN (Violations):</div>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        <button onclick="quickTest('Mày là thằng ngu ngốc, đần độn')" class="test-btn test-reject">🚫 Xúc phạm</button>
+                        <button onclick="quickTest('Cái quan điểm ngu si vãi lồn')" class="test-btn test-reject">🚫 Chửi thề nặng</button>
+                        <button onclick="quickTest('Đồ ngu như chó, tao ghét mày')" class="test-btn test-reject">🚫 Công kích cá nhân</button>
+                        <button onclick="quickTest('Tao sẽ tìm mày và đánh cho một trận')" class="test-btn test-reject">🚫 Đe dọa bạo lực</button>
+                        <button onclick="quickTest('Mày đợi đấy, tao sẽ lộ thông tin của mày')" class="test-btn test-reject">🚫 Đe dọa doxxing</button>
+                        <button onclick="quickTest('Bọn [nhóm người] đáng bị tống cổ về nước họ')" class="test-btn test-reject">🚫 Hate speech</button>
+                        <button onclick="quickTest('Đám phụ nữ ngu ngốc, không đáng tin')" class="test-btn test-reject">🚫 Phân biệt giới tính</button>
+                        <button onclick="quickTest('Bọn đồng tính là bệnh hoạn, cần cách ly')" class="test-btn test-reject">🚫 Kỳ thị LGBT</button>
+                        <button onclick="quickTest('Kiếm tiền online tại nhà 10 triệu/ngày!!! 📞📞📞')" class="test-btn test-reject">🚫 Spam</button>
+                        <button onclick="quickTest('Cần gái xinh phục vụ, inbox Zalo 💋💋💋')" class="test-btn test-reject">🚫 Nội dung sexual</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Stats Panel -->
+        <div class="stats-panel">
+            <div class="stats-grid">
+                <div class="stat-item">
+                    <div class="stat-number" id="totalComments">0</div>
+                    <div class="stat-label">Tổng bình luận</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="approvedComments" style="color: #28a745;">0</div>
+                    <div class="stat-label">Được duyệt</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number" id="blockedComments" style="color: #dc3545;">0</div>
+                    <div class="stat-label">Bị chặn</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Warning Banner -->
+        <div class="warning-banner">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+            </svg>
+            <div class="warning-text">
+                <strong>Nguyên tắc kiểm duyệt:</strong> 
+                ✅ Cho phép ý kiến tiêu cực hợp lệ (phê bình sản phẩm, chính trị, giải trí, thể thao...)
+                <br>
+                ❌ Chặn nội dung vi phạm (chửi thề, xúc phạm cá nhân, đe dọa bạo lực)
+            </div>
+        </div>
+
+        <!-- Facebook Post Card -->
+        <div class="post-card">
+            <!-- Post Header -->
+            <div class="post-header">
+                <div class="post-avatar">V</div>
+                <div class="post-author-info">
+                    <div class="post-author-name">VietCMS Demo</div>
+                    <div class="post-time">5 phút trước · 🌐</div>
+                </div>
+            </div>
+
+            <!-- Post Content -->
+            <div class="post-content">
+                🎉 Chào mừng đến với hệ thống kiểm duyệt VietCMS - Được thiết kế cho Mạng Xã Hội!
+                <br><br>
+                <strong>Điểm khác biệt:</strong> Hệ thống KHÔNG xóa ý kiến tiêu cực hợp lệ, chỉ chặn nội dung vi phạm thực sự.
+                <br><br>
+                ✅ <strong>Được phép:</strong> Phê bình sản phẩm, chính trị, giải trí, thể thao, chia sẻ cảm xúc
+                <br>
+                ❌ <strong>Bị chặn:</strong> Chửi thề, xúc phạm cá nhân, đe dọa bạo lực
+                <br><br>
+                👆 Thử các nút test phía trên để xem hệ thống hoạt động!
+            </div>
+
+            <!-- Post Actions -->
+            <div class="post-stats">
+                <div>
+                    <span id="likesCount">127</span> lượt thích
+                </div>
+                <div>
+                    <span id="commentsCount">0</span> bình luận
+                </div>
+            </div>
+
+            <div class="post-actions">
+                <button class="action-btn">
+                    <svg fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M8.864.046C7.908-.193 7.02.53 6.956 1.466c-.072 1.051-.23 2.016-.428 2.59-.125.36-.479 1.013-1.04 1.639-.557.623-1.282 1.178-2.131 1.41C2.685 7.288 2 7.87 2 8.72v4.001c0 .845.682 1.464 1.448 1.545 1.07.114 1.564.415 2.068.723l.048.03c.272.165.578.348.97.484.397.136.861.217 1.466.217h3.5c.937 0 1.599-.477 1.934-1.064a1.86 1.86 0 0 0 .254-.912c0-.152-.023-.312-.077-.464.201-.263.38-.578.488-.901.11-.33.172-.762.004-1.149.069-.13.12-.269.159-.403.077-.27.113-.568.113-.857 0-.288-.036-.585-.113-.856a2.144 2.144 0 0 0-.138-.362 1.9 1.9 0 0 0 .234-1.734c-.206-.592-.682-1.1-1.2-1.272-.847-.282-1.803-.276-2.516-.211a9.84 9.84 0 0 0-.443.05 9.365 9.365 0 0 0-.062-4.509A1.38 1.38 0 0 0 9.125.111L8.864.046zM11.5 14.721H8c-.51 0-.863-.069-1.14-.164-.281-.097-.506-.228-.776-.393l-.04-.024c-.555-.339-1.198-.731-2.49-.868-.333-.036-.554-.29-.554-.55V8.72c0-.254.226-.543.62-.65 1.095-.3 1.977-.996 2.614-1.708.635-.71 1.064-1.475 1.238-1.978.243-.7.407-1.768.482-2.85.025-.362.36-.594.667-.518l.262.066c.16.04.258.143.288.255a8.34 8.34 0 0 1-.145 4.725.5.5 0 0 0 .595.644l.003-.001.014-.003.058-.014a8.908 8.908 0 0 1 1.036-.157c.663-.06 1.457-.054 2.11.164.175.058.45.3.57.65.107.308.087.67-.266 1.022l-.353.353.353.354c.043.043.105.141.154.315.048.167.075.37.075.581 0 .212-.027.414-.075.582-.05.174-.111.272-.154.315l-.353.353.353.354c.047.047.109.177.005.488a2.224 2.224 0 0 1-.505.805l-.353.353.353.354c.006.005.041.05.041.17a.866.866 0 0 1-.121.416c-.165.288-.503.56-1.066.56z"/>
+                    </svg>
+                    Thích
+                </button>
+                <button class="action-btn" onclick="focusCommentInput()">
+                    <svg fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M2.678 11.894a1 1 0 0 1 .287.801 10.97 10.97 0 0 1-.398 2c1.395-.323 2.247-.697 2.634-.893a1 1 0 0 1 .71-.074A8.06 8.06 0 0 0 8 14c3.996 0 7-2.807 7-6 0-3.192-3.004-6-7-6S1 4.808 1 8c0 1.468.617 2.83 1.678 3.894zm-.493 3.905a21.682 21.682 0 0 1-.713.129c-.2.032-.352-.176-.273-.362a9.68 9.68 0 0 0 .244-.637l.003-.01c.248-.72.45-1.548.524-2.319C.743 11.37 0 9.76 0 8c0-3.866 3.582-7 8-7s8 3.134 8 7-3.582 7-8 7a9.06 9.06 0 0 1-2.347-.306c-.52.263-1.639.742-3.468 1.105z"/>
+                    </svg>
+                    Bình luận
+                </button>
+                <button class="action-btn">
+                    <svg fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M15 14s1 0 1-1-1-4-5-4-5 3-5 4 1 1 1 1h8zm-7.978-1A.261.261 0 0 1 7 12.996c.001-.264.167-1.03.76-1.72C8.312 10.629 9.282 10 11 10c1.717 0 2.687.63 3.24 1.276.593.69.758 1.457.76 1.72l-.008.002a.274.274 0 0 1-.014.002H7.022zM11 7a2 2 0 1 0 0-4 2 2 0 0 0 0 4zm3-2a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM6.936 9.28a5.88 5.88 0 0 0-1.23-.247A7.35 7.35 0 0 0 5 9c-4 0-5 3-5 4 0 .667.333 1 1 1h4.216A2.238 2.238 0 0 1 5 13c0-1.01.377-2.042 1.09-2.904.243-.294.526-.569.846-.816zM4.92 10A5.493 5.493 0 0 0 4 13H1c0-.26.164-1.03.76-1.724.545-.636 1.492-1.256 3.16-1.275zM1.5 5.5a3 3 0 1 1 6 0 3 3 0 0 1-6 0zm3-2a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/>
+                    </svg>
+                    Chia sẻ
+                </button>
+            </div>
+
+            <!-- Comments Section -->
+            <div class="comments-section">
+                <!-- Comment Input -->
+                <div class="comment-input-wrapper">
+                    <div class="comment-avatar">B</div>
+                    <div class="comment-input-container">
+                        <textarea 
+                            class="comment-input" 
+                            id="commentInput" 
+                            placeholder="Viết bình luận..."
+                            rows="1"
+                            oninput="autoResize(this)"
+                            onkeydown="handleKeyDown(event)"
+                        ></textarea>
+                        <div class="comment-actions" id="commentActions" style="display: none;">
+                            <button class="btn-cancel" onclick="cancelComment()">Hủy</button>
+                            <button class="btn-comment" id="submitBtn" onclick="submitComment()">Bình luận</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comments List -->
+                <div class="comments-list" id="commentsList">
+                    <!-- Example comment -->
+                    <div class="comment-item">
+                        <div class="comment-avatar">V</div>
+                        <div class="comment-content">
+                            <div class="comment-bubble">
+                                <div class="comment-author">VietCMS Team</div>
+                                <div class="comment-text">
+                                    👋 Chào bạn! Hệ thống này được thiết kế cho <strong>mạng xã hội trung lập</strong>.<br><br>
+                                    💡 Bạn có thể tự do phê bình bất cứ điều gì (sản phẩm, chính trị, giải trí...) - miễn không xúc phạm cá nhân hay chửi thề.<br><br>
+                                    🧪 Click các nút test phía trên để thử!
+                                </div>
+                            </div>
+                            <div class="comment-meta">
+                                <span class="comment-time">Vừa xong</span>
+                                <span style="cursor: pointer;">Thích</span>
+                                <span style="cursor: pointer;">Phản hồi</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        let config = {
+            apiUrl: 'http://localhost',
+            apiKey: 'test_api_key_vietcms_2024_abcdef123456',
+            hmacSecret: 'test_hmac_secret_vietcms_2024_xyz789'
+        };
+
+        // Stats
+        let stats = {
+            total: 0,
+            approved: 0,
+            blocked: 0
+        };
+
+        // Pending jobs map
+        let pendingJobs = new Map();
+
+        // Auto-resize textarea
+        function autoResize(textarea) {
+            textarea.style.height = 'auto';
+            textarea.style.height = Math.min(textarea.scrollHeight, 150) + 'px';
+            
+            // Show/hide actions
+            const actions = document.getElementById('commentActions');
+            if (textarea.value.trim()) {
+                actions.style.display = 'flex';
+            } else {
+                actions.style.display = 'none';
+            }
+        }
+
+        // Handle keyboard shortcuts
+        function handleKeyDown(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                submitComment();
+            } else if (event.key === 'Escape') {
+                cancelComment();
+            }
+        }
+
+        // Focus comment input
+        function focusCommentInput() {
+            document.getElementById('commentInput').focus();
+        }
+
+        // Cancel comment
+        function cancelComment() {
+            const input = document.getElementById('commentInput');
+            input.value = '';
+            input.style.height = 'auto';
+            document.getElementById('commentActions').style.display = 'none';
+        }
+
+        // HMAC signature
+        async function signPayload(secret, payload) {
+            const encoder = new TextEncoder();
+            const keyData = encoder.encode(secret);
+            const messageData = encoder.encode(payload);
+            
+            const cryptoKey = await crypto.subtle.importKey(
+                'raw',
+                keyData,
+                { name: 'HMAC', hash: 'SHA-256' },
+                false,
+                ['sign']
+            );
+            
+            const signature = await crypto.subtle.sign('HMAC', cryptoKey, messageData);
+            const hashArray = Array.from(new Uint8Array(signature));
+            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            
+            return 'sha256=' + hashHex;
+        }
+
+        // Quick test function
+        async function quickTest(text) {
+            const input = document.getElementById('commentInput');
+            input.value = text;
+            autoResize(input);
+            
+            // Auto submit after a short delay
+            setTimeout(() => {
+                submitComment();
+            }, 500);
+        }
+
+        // Submit comment
+        async function submitComment() {
+            const input = document.getElementById('commentInput');
+            const text = input.value.trim();
+            
+            if (!text) return;
+
+            // Get config
+            config.apiUrl = document.getElementById('apiUrl').value;
+            config.apiKey = document.getElementById('apiKey').value;
+            config.hmacSecret = document.getElementById('hmacSecret').value;
+
+            if (!config.apiKey || !config.hmacSecret) {
+                showToast('Vui lòng cấu hình API Key và HMAC Secret', 'error');
+                return;
+            }
+
+            // Disable submit button
+            const submitBtn = document.getElementById('submitBtn');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner"></span> Đang gửi...';
+
+            try {
+                // Create temporary comment ID
+                const tempId = 'temp-' + Date.now();
+                
+                // Add processing comment to UI
+                addCommentToUI({
+                    id: tempId,
+                    text: text,
+                    author: 'Bạn',
+                    time: 'Đang kiểm duyệt...',
+                    status: 'processing'
+                });
+
+                // Prepare payload
+                const payload = {
+                    text: text,
+                    comment_id: 'comment-' + Date.now(),
+                    metadata: {
+                        content_type: 'comment',
+                        user_id: 'demo-user-' + Date.now(),
+                        timestamp: new Date().toISOString()
+                    }
+                };
+
+                const bodyString = JSON.stringify(payload);
+                const signature = await signPayload(config.hmacSecret, bodyString);
+
+                // Submit to API
+                const response = await fetch(`${config.apiUrl}/api/v1/submit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-API-Key': config.apiKey,
+                        'X-Hub-Signature-256': signature
+                    },
+                    body: bodyString
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    // Extract job_id from response
+                    const jobId = result.data?.job_id || result.job_id;
+                    
+                    if (!jobId) {
+                        console.error('No job_id in response:', result);
+                        removeCommentFromUI(tempId);
+                        showToast('Lỗi: Không nhận được job_id', 'error');
+                        return;
+                    }
+                    
+                    // Store pending job
+                    pendingJobs.set(jobId, {
+                        tempId: tempId,
+                        text: text,
+                        timestamp: Date.now()
+                    });
+
+                    // Check status after 2 seconds
+                    setTimeout(() => checkJobStatus(jobId), 2000);
+
+                    // Clear input
+                    cancelComment();
+                } else {
+                    // Remove processing comment
+                    removeCommentFromUI(tempId);
+                    showToast('Lỗi: ' + (result.detail || result.error?.message || 'Không thể gửi bình luận'), 'error');
+                }
+            } catch (error) {
+                console.error('Error submitting comment:', error);
+                showToast('Lỗi kết nối: ' + error.message, 'error');
+                
+                // Remove processing comment on error
+                const tempComment = document.querySelector(`[data-comment-id="${tempId}"]`);
+                if (tempComment) {
+                    tempComment.remove();
+                }
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Bình luận';
+            }
+        }
+
+        // Check job status
+        async function checkJobStatus(jobId, retryCount = 0) {
+            const maxRetries = 10;
+            
+            try {
+                const response = await fetch(`${config.apiUrl}/api/v1/status/${jobId}`, {
+                    headers: {
+                        'X-API-Key': config.apiKey
+                    }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    console.log('Job status response:', data);
+                    
+                    if (data.status === 'completed') {
+                        handleCompletedJob(jobId, data);
+                    } else if (data.data && data.data.status === 'completed') {
+                        handleCompletedJob(jobId, data);
+                    } else {
+                        // Check nested status
+                        const actualStatus = data.data?.status || data.status;
+                        
+                        if (actualStatus === 'processing' || actualStatus === 'pending' || actualStatus === 'queued') {
+                            // Retry after delay
+                            if (retryCount < maxRetries) {
+                                setTimeout(() => checkJobStatus(jobId, retryCount + 1), 2000);
+                            } else {
+                                // Timeout - assume approved
+                                handleTimeout(jobId);
+                            }
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking status:', error);
+                if (retryCount < maxRetries) {
+                    setTimeout(() => checkJobStatus(jobId, retryCount + 1), 2000);
+                }
+            }
+        }
+
+        // Handle completed job
+        function handleCompletedJob(jobId, responseData) {
+            const jobInfo = pendingJobs.get(jobId);
+            if (!jobInfo) return;
+
+            // Extract data - handle both direct and nested structure
+            const data = responseData.data || responseData;
+            const result = data.result || {};
+            
+            // Map moderation_result to decision
+            let decision = 'unknown';
+            const moderationResult = result.moderation_result || data.moderation_result;
+            
+            if (moderationResult === 'approve' || moderationResult === 'approved') {
+                decision = 'approve';
+            } else if (moderationResult === 'reject' || moderationResult === 'rejected') {
+                decision = 'reject';
+            } else if (moderationResult === 'review') {
+                // Review means needs human review, for demo we'll show as approved
+                decision = 'approve';
+            }
+            
+            const confidence = result.confidence || data.confidence || 0;
+            const reason = result.reasoning || data.reasoning || '';
+            const flaggedWords = result.flagged_words || data.flagged_words || [];
+
+            // Remove processing comment
+            removeCommentFromUI(jobInfo.tempId);
+
+            if (decision === 'approve') {
+                // Show approved comment
+                addCommentToUI({
+                    id: jobId,
+                    text: jobInfo.text,
+                    author: 'Bạn',
+                    time: 'Vừa xong',
+                    status: 'approved'
+                });
+                
+                stats.approved++;
+                showToast('✅ Bình luận của bạn đã được duyệt!', 'success');
+            } else {
+                // Show blocked notification
+                showBlockedComment(jobInfo.text, reason, flaggedWords, confidence);
+                
+                stats.blocked++;
+                showToast('❌ Bình luận của bạn đã bị chặn do vi phạm', 'error');
+            }
+
+            stats.total++;
+            updateStats();
+            pendingJobs.delete(jobId);
+        }
+
+        // Handle timeout
+        function handleTimeout(jobId) {
+            const jobInfo = pendingJobs.get(jobId);
+            if (!jobInfo) return;
+
+            removeCommentFromUI(jobInfo.tempId);
+            addCommentToUI({
+                id: jobId,
+                text: jobInfo.text,
+                author: 'Bạn',
+                time: 'Vừa xong',
+                status: 'approved'
+            });
+
+            stats.total++;
+            stats.approved++;
+            updateStats();
+            pendingJobs.delete(jobId);
+        }
+
+        // Add comment to UI
+        function addCommentToUI(comment) {
+            const commentsList = document.getElementById('commentsList');
+            const commentDiv = document.createElement('div');
+            commentDiv.className = 'comment-item';
+            commentDiv.setAttribute('data-comment-id', comment.id);
+            
+            if (comment.status === 'processing') {
+                commentDiv.classList.add('comment-processing');
+            }
+
+            commentDiv.innerHTML = `
+                <div class="comment-avatar">B</div>
+                <div class="comment-content">
+                    <div class="comment-bubble">
+                        <div class="comment-author">${comment.author}</div>
+                        <div class="comment-text">
+                            ${escapeHtml(comment.text)}
+                            ${comment.status === 'processing' ? '<span class="processing-indicator"><span class="spinner"></span> Đang kiểm duyệt...</span>' : ''}
+                        </div>
+                    </div>
+                    <div class="comment-meta">
+                        <span class="comment-time">${comment.time}</span>
+                        <span style="cursor: pointer;">Thích</span>
+                        <span style="cursor: pointer;">Phản hồi</span>
+                    </div>
+                </div>
+            `;
+
+            // Insert after input
+            const firstComment = commentsList.firstElementChild;
+            if (firstComment && firstComment.nextSibling) {
+                commentsList.insertBefore(commentDiv, firstComment.nextSibling);
+            } else {
+                commentsList.appendChild(commentDiv);
+            }
+        }
+
+        // Remove comment from UI
+        function removeCommentFromUI(commentId) {
+            const comment = document.querySelector(`[data-comment-id="${commentId}"]`);
+            if (comment) {
+                comment.remove();
+            }
+        }
+
+        // Show blocked comment notification
+        function showBlockedComment(text, reason, flaggedWords, confidence) {
+            const commentsList = document.getElementById('commentsList');
+            const blockedDiv = document.createElement('div');
+            blockedDiv.className = 'comment-blocked';
+            
+            const wordsText = flaggedWords.length > 0 
+                ? `<br><strong>Từ ngữ vi phạm:</strong> ${flaggedWords.join(', ')}` 
+                : '';
+            
+            blockedDiv.innerHTML = `
+                <div class="blocked-header">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM5.354 4.646a.5.5 0 1 0-.708.708L7.293 8l-2.647 2.646a.5.5 0 0 0 .708.708L8 8.707l2.646 2.647a.5.5 0 0 0 .708-.708L8.707 8l2.647-2.646a.5.5 0 0 0-.708-.708L8 7.293 5.354 4.646z"/>
+                    </svg>
+                    Bình luận bị chặn
+                </div>
+                <div class="blocked-text">
+                    <strong>Nội dung:</strong> ${escapeHtml(text)}
+                </div>
+                <div class="blocked-reason">
+                    <strong>Lý do:</strong> ${reason || 'Nội dung vi phạm quy định cộng đồng'}
+                    ${wordsText}
+                    <br><strong>Độ tin cậy:</strong> ${(confidence * 100).toFixed(1)}%
+                </div>
+            `;
+
+            // Insert after input
+            const firstComment = commentsList.firstElementChild;
+            if (firstComment && firstComment.nextSibling) {
+                commentsList.insertBefore(blockedDiv, firstComment.nextSibling);
+            } else {
+                commentsList.appendChild(blockedDiv);
+            }
+
+            // Auto remove after 10 seconds
+            setTimeout(() => {
+                blockedDiv.style.transition = 'opacity 0.3s';
+                blockedDiv.style.opacity = '0';
+                setTimeout(() => blockedDiv.remove(), 300);
+            }, 10000);
+        }
+
+        // Update stats
+        function updateStats() {
+            document.getElementById('totalComments').textContent = stats.total;
+            document.getElementById('approvedComments').textContent = stats.approved;
+            document.getElementById('blockedComments').textContent = stats.blocked;
+            document.getElementById('commentsCount').textContent = stats.approved + 1; // +1 for admin comment
+        }
+
+        // Show toast notification
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.textContent = message;
+            
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.transition = 'opacity 0.3s';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Escape HTML
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Load config from localStorage
+        window.addEventListener('load', () => {
+            const saved = localStorage.getItem('facebook-demo-config');
+            if (saved) {
+                try {
+                    const savedConfig = JSON.parse(saved);
+                    document.getElementById('apiUrl').value = savedConfig.apiUrl || config.apiUrl;
+                    document.getElementById('apiKey').value = savedConfig.apiKey || config.apiKey;
+                    document.getElementById('hmacSecret').value = savedConfig.hmacSecret || config.hmacSecret;
+                } catch (e) {}
+            }
+        });
+
+        // Save config to localStorage
+        ['apiUrl', 'apiKey', 'hmacSecret'].forEach(id => {
+            document.getElementById(id).addEventListener('change', (e) => {
+                const config = {
+                    apiUrl: document.getElementById('apiUrl').value,
+                    apiKey: document.getElementById('apiKey').value,
+                    hmacSecret: document.getElementById('hmacSecret').value
+                };
+                localStorage.setItem('facebook-demo-config', JSON.stringify(config));
+            });
+        });
+    </script>
+</body>
+</html>
+

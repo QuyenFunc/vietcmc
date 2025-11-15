@@ -1,0 +1,65 @@
+# Copy file này thành .env trong root directory
+# cp env-example.txt .env
+
+# General
+COMPOSE_PROJECT_NAME=vietcms-moderation
+ENVIRONMENT=development
+
+# PostgreSQL
+POSTGRES_HOST=postgres
+POSTGRES_PORT=5432
+POSTGRES_DB=vietcms_moderation
+POSTGRES_USER=vietcms
+POSTGRES_PASSWORD=vietcms_password_123
+
+# RabbitMQ
+RABBITMQ_HOST=rabbitmq
+RABBITMQ_PORT=5672
+RABBITMQ_DEFAULT_USER=admin
+RABBITMQ_DEFAULT_PASS=rabbitmq_password_456
+RABBITMQ_MANAGEMENT_PORT=15672
+
+# Redis Cache
+REDIS_HOST=redis
+REDIS_PORT=6379
+
+# API
+API_SECRET_KEY=your_secret_key_here_min_32_characters_long_12345678
+JWT_SECRET_KEY=your_jwt_secret_key_here_min_32_characters_long_87654321
+API_RATE_LIMIT=1000
+# CORS: Use "*" for all origins (development), or comma-separated list for production
+# Example: API_CORS_ORIGINS=http://localhost:3000,http://localhost,http://127.0.0.1:5500
+API_CORS_ORIGINS=*
+
+# Worker - Optimized for high load  
+# To achieve 3000+ jobs/minute (50+ jobs/second):
+# Each job takes ~1-2 seconds (with optimizations)
+# 8 replicas x 20 concurrency = 160 parallel jobs ≈ 4800 jobs/minute
+# For 1000 messages burst: all processed in ~12-15 seconds
+WORKER_CONCURRENCY=20
+MODEL_PATH=/app/models/phobert-onnx
+MODEL_DEVICE=cpu
+# Higher confidence threshold = fewer false positives (only block clearly toxic content)
+CONFIDENCE_THRESHOLD=0.7
+
+# Webhook - Optimized for speed
+# Reduced timeout for faster processing (5s instead of 10s)
+# 3 dispatcher instances × 50 concurrency = 150 parallel webhooks
+# Can handle 1000+ webhooks in ~7-10 seconds
+WEBHOOK_TIMEOUT=5
+WEBHOOK_MAX_RETRIES=3
+
+# Admin UI
+VITE_API_BASE_URL=http://localhost/api/v1
+
+# Traefik
+TRAEFIK_DASHBOARD_PORT=8080
+
+# Monitoring (Optional)
+PROMETHEUS_PORT=9090
+GRAFANA_PORT=3001
+GRAFANA_ADMIN_PASSWORD=admin123
+
+# Logging
+LOG_LEVEL=INFO
+
