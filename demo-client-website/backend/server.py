@@ -37,6 +37,17 @@ runtime_config = {
     'webhook_url': ''
 }
 
+
+def mask_secret(value: str, visible: int = 4) -> str:
+    """Create a masked preview of a secret for UI display."""
+    if not value or value in {'YOUR_API_KEY_HERE', 'YOUR_HMAC_SECRET_HERE'}:
+        return ''
+
+    if len(value) <= visible * 2:
+        return value
+
+    return f"{value[:visible]}...{value[-visible:]}"
+
 def get_config():
     """Get current config (runtime hoặc env)"""
     return {
@@ -253,16 +264,18 @@ def get_api_config():
     """Get current API configuration"""
     config = get_config()
     is_configured = config['api_key'] != 'YOUR_API_KEY_HERE'
-    
+
     config_payload = None
     if is_configured:
         config_payload = {
             'api_url': config['api_url'],
             'api_key': config['api_key'],
-            'hmac_secret': config['hmac_secret'][:10] + '...',
-            'webhook_url': config['webhook_url']
+            'hmac_secret': config['hmac_secret'],
+            'webhook_url': config['webhook_url'],
+            'api_key_preview': mask_secret(config['api_key']),
+            'hmac_secret_preview': mask_secret(config['hmac_secret'])
         }
-    
+
     return jsonify({
         'configured': is_configured,
         'config': config_payload,
@@ -274,26 +287,27 @@ def get_api_config():
 def save_api_config():
     """Save API configuration"""
     data = request.json
-    
-    api_url = data.get('api_url', '').strip() or VIETCMS_API_URL
-    api_key = data.get('api_key', '').strip()
-    hmac_secret = data.get('hmac_secret', '').strip()
+    current_config = get_config()
+
+    api_url = data.get('api_url', '').strip() or current_config.get('api_url') or VIETCMS_API_URL
+    api_key = data.get('api_key', '').strip() or current_config.get('api_key')
+    hmac_secret = data.get('hmac_secret', '').strip() or current_config.get('hmac_secret')
     webhook_url = data.get('webhook_url', '').strip()
-    
+
     api_url = api_url.rstrip('/')
-    
+
     if not api_url.lower().startswith('http'):
         return jsonify({
             'success': False,
             'error': 'API URL phải là HTTP/HTTPS hợp lệ'
         }), 400
-    
-    if not api_key or not hmac_secret:
+
+    if not api_key or api_key == 'YOUR_API_KEY_HERE' or not hmac_secret or hmac_secret == 'YOUR_HMAC_SECRET_HERE':
         return jsonify({
             'success': False,
             'error': 'API Key và HMAC Secret không được để trống'
         }), 400
-    
+
     # Update runtime config
     runtime_config['api_url'] = api_url
     runtime_config['api_key'] = api_key
@@ -360,20 +374,20 @@ def clear_api_config():
 def test_api_config():
     """Test API configuration by calling VietCMS health endpoint"""
     data = request.json
-    
-    api_url = data.get('api_url', '').strip()
-    api_key = data.get('api_key', '').strip()
-    hmac_secret = data.get('hmac_secret', '').strip()
-    
-    if not api_key or not hmac_secret:
+
+    config = get_config()
+
+    api_url = (data.get('api_url', '').strip() or config['api_url'] or VIETCMS_API_URL).rstrip('/')
+    api_key = data.get('api_key', '').strip() or config['api_key']
+    hmac_secret = data.get('hmac_secret', '').strip() or config['hmac_secret']
+
+    if (not api_key or api_key == 'YOUR_API_KEY_HERE' or
+            not hmac_secret or hmac_secret == 'YOUR_HMAC_SECRET_HERE'):
         return jsonify({
             'success': False,
             'error': 'API Key và HMAC Secret không được để trống'
         }), 400
-    
-    config = get_config()
-    api_url = (api_url or config['api_url'] or VIETCMS_API_URL).rstrip('/')
-    
+
     if not api_url.lower().startswith('http'):
         return jsonify({
             'success': False,

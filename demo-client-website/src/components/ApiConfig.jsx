@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 
 export default function ApiConfig() {
   const [config, setConfig] = useState({
+    api_url: '',
     api_key: '',
     hmac_secret: '',
     webhook_url: ''
@@ -10,6 +11,12 @@ export default function ApiConfig() {
   const [showForm, setShowForm] = useState(false)
   const [testResult, setTestResult] = useState(null)
   const [loading, setLoading] = useState(false)
+
+  const maskSecret = (value) => {
+    if (!value) return ''
+    if (value.length <= 8) return value
+    return `${value.slice(0, 4)}...${value.slice(-4)}`
+  }
 
   // Load current config
   useEffect(() => {
@@ -22,9 +29,19 @@ export default function ApiConfig() {
       const data = await response.json()
       if (data.configured) {
         setSavedConfig(data.config)
-        setConfig(data.config)
+        setConfig({
+          api_url: data.config?.api_url || data.default_api_url || '',
+          api_key: data.config?.api_key || '',
+          hmac_secret: data.config?.hmac_secret || '',
+          webhook_url: data.config?.webhook_url || ''
+        })
+        setShowForm(false)
       } else {
         setShowForm(true) // Nếu chưa config thì hiện form
+        setConfig(prev => ({
+          ...prev,
+          api_url: data.default_api_url || ''
+        }))
       }
     } catch (error) {
       console.error('Error loading config:', error)
@@ -45,7 +62,11 @@ export default function ApiConfig() {
       const data = await response.json()
       
       if (data.success) {
-        setSavedConfig(config)
+        setSavedConfig({
+          ...config,
+          api_key_preview: maskSecret(config.api_key),
+          hmac_secret_preview: maskSecret(config.hmac_secret)
+        })
         setShowForm(false)
         setTestResult({ type: 'success', message: '✅ Cấu hình đã được lưu thành công!' })
       } else {
@@ -88,10 +109,11 @@ export default function ApiConfig() {
     
     try {
       await fetch('/api/config', { method: 'DELETE' })
-      setConfig({ api_key: '', hmac_secret: '', webhook_url: '' })
+      setConfig({ api_url: '', api_key: '', hmac_secret: '', webhook_url: '' })
       setSavedConfig(null)
       setShowForm(true)
       setTestResult({ type: 'success', message: '✅ Đã xóa cấu hình' })
+      await loadConfig()
     } catch (error) {
       setTestResult({ type: 'error', message: '❌ Không thể xóa cấu hình' })
     }
@@ -106,10 +128,11 @@ export default function ApiConfig() {
               <span>✅</span> VietCMS API đã được cấu hình
             </h3>
             <div className="text-sm text-green-700 space-y-1">
-              <p><strong>API Key:</strong> {savedConfig.api_key?.substring(0, 20)}...</p>
-              <p><strong>Webhook URL:</strong> {savedConfig.webhook_url}</p>
-            </div>
-          </div>
+          <p><strong>API URL:</strong> {savedConfig.api_url}</p>
+          <p><strong>API Key:</strong> {savedConfig.api_key_preview || maskSecret(savedConfig.api_key)}</p>
+          <p><strong>Webhook URL:</strong> {savedConfig.webhook_url || 'Chưa cấu hình'}</p>
+        </div>
+      </div>
           <div className="flex gap-2">
             <button
               onClick={() => setShowForm(true)}
@@ -148,12 +171,25 @@ export default function ApiConfig() {
       <div className="space-y-4">
         <div>
           <label className="block text-sm font-semibold text-gray-700 mb-2">
+            API URL <span className="text-red-500">*</span>
+          </label>
+          <input
+            type="url"
+            value={config.api_url}
+            onChange={(e) => setConfig({ ...config, api_url: e.target.value })}
+            className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition outline-none text-sm"
+            placeholder="https://api.vietcms.ai/api/v1"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-semibold text-gray-700 mb-2">
             API Key <span className="text-red-500">*</span>
           </label>
           <input
             type="text"
             value={config.api_key}
-            onChange={(e) => setConfig({...config, api_key: e.target.value})}
+            onChange={(e) => setConfig({ ...config, api_key: e.target.value })}
             className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition outline-none font-mono text-sm"
             placeholder="api_xxxxxxxxxxxxxxxx"
           />
@@ -166,7 +202,7 @@ export default function ApiConfig() {
           <input
             type="password"
             value={config.hmac_secret}
-            onChange={(e) => setConfig({...config, hmac_secret: e.target.value})}
+            onChange={(e) => setConfig({ ...config, hmac_secret: e.target.value })}
             className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition outline-none font-mono text-sm"
             placeholder="hmac_xxxxxxxxxxxxxxxx"
           />
@@ -179,7 +215,7 @@ export default function ApiConfig() {
           <input
             type="url"
             value={config.webhook_url}
-            onChange={(e) => setConfig({...config, webhook_url: e.target.value})}
+            onChange={(e) => setConfig({ ...config, webhook_url: e.target.value })}
             className="w-full px-4 py-2 border-2 border-gray-300 rounded-lg focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition outline-none font-mono text-sm"
             placeholder="https://your-tunnel.trycloudflare.com/webhooks/moderation"
           />
@@ -191,15 +227,15 @@ export default function ApiConfig() {
         <div className="flex gap-3">
           <button
             onClick={handleTest}
-            disabled={loading || !config.api_key || !config.hmac_secret}
+            disabled={loading || !config.api_url || !config.api_key || !config.hmac_secret}
             className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Đang test...' : 'Test kết nối'}
           </button>
-          
+
           <button
             onClick={handleSave}
-            disabled={loading || !config.api_key || !config.hmac_secret}
+            disabled={loading || !config.api_url || !config.api_key || !config.hmac_secret}
             className="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {loading ? 'Đang lưu...' : 'Lưu cấu hình'}
