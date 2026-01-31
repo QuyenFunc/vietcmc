@@ -19,14 +19,14 @@ export default function ClientDashboard() {
   const loadDashboard = async () => {
     const token = localStorage.getItem('client_token')
     const info = JSON.parse(localStorage.getItem('client_info') || '{}')
-    
+
     if (!token) {
       navigate('/client-login')
       return
     }
 
     setClientInfo(info)
-    
+
     try {
       // Load stats
       const statsResponse = await fetch('/api/v1/client/stats', {
@@ -60,7 +60,7 @@ export default function ClientDashboard() {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text)
-    alert('Đã copy!')
+    alert('Copied!')
   }
 
   const handleEditWebhook = () => {
@@ -75,7 +75,7 @@ export default function ClientDashboard() {
 
   const handleSaveWebhook = async () => {
     const token = localStorage.getItem('client_token')
-    
+
     try {
       const response = await fetch('/api/v1/client/webhook', {
         method: 'PUT',
@@ -93,15 +93,15 @@ export default function ClientDashboard() {
         const updatedInfo = { ...clientInfo, webhook_url: data.data.webhook_url }
         setClientInfo(updatedInfo)
         localStorage.setItem('client_info', JSON.stringify(updatedInfo))
-        
+
         setEditingWebhook(false)
-        alert('Cập nhật webhook URL thành công!')
+        alert('Webhook URL updated successfully!')
       } else {
-        alert('Lỗi: ' + (data.message || 'Không thể cập nhật'))
+        alert('Error: ' + (data.message || 'Could not update'))
       }
     } catch (err) {
       console.error('Error updating webhook:', err)
-      alert('Lỗi khi cập nhật webhook URL')
+      alert('Error updating webhook URL')
     }
   }
 
@@ -113,7 +113,7 @@ export default function ClientDashboard() {
             <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
             <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
           </svg>
-          <p className="text-gray-600">Đang tải...</p>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     )
@@ -137,7 +137,7 @@ export default function ClientDashboard() {
               onClick={handleLogout}
               className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
             >
-              Đăng xuất
+              Logout
             </button>
           </div>
         </div>
@@ -148,9 +148,9 @@ export default function ClientDashboard() {
         {/* API Credentials */}
         <div className="bg-white rounded-lg shadow p-6 mb-8">
           <h2 className="text-xl font-bold text-gray-900 mb-4">
-            Thông tin API
+            API Information
           </h2>
-          
+
           <div className="space-y-4">
             {/* App ID */}
             <div>
@@ -189,7 +189,7 @@ export default function ClientDashboard() {
                   onClick={() => setShowApiKey(!showApiKey)}
                   className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
                 >
-                  {showApiKey ? 'Ẩn' : 'Hiện'}
+                  {showApiKey ? 'Hide' : 'Show'}
                 </button>
                 <button
                   onClick={() => copyToClipboard(clientInfo?.api_key)}
@@ -216,7 +216,7 @@ export default function ClientDashboard() {
                   onClick={() => setShowSecret(!showSecret)}
                   className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
                 >
-                  {showSecret ? 'Ẩn' : 'Hiện'}
+                  {showSecret ? 'Hide' : 'Show'}
                 </button>
                 <button
                   onClick={() => copyToClipboard(clientInfo?.hmac_secret)}
@@ -246,13 +246,13 @@ export default function ClientDashboard() {
                       onClick={handleSaveWebhook}
                       className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
                     >
-                      Lưu
+                      Save
                     </button>
                     <button
                       onClick={handleCancelEditWebhook}
                       className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition"
                     >
-                      Hủy
+                      Cancel
                     </button>
                   </div>
                 </div>
@@ -268,7 +268,7 @@ export default function ClientDashboard() {
                     onClick={handleEditWebhook}
                     className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
                   >
-                    Sửa
+                    Edit
                   </button>
                 </div>
               )}
@@ -280,19 +280,19 @@ export default function ClientDashboard() {
         {stats && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
             <div className="bg-white rounded-lg shadow p-6">
-              <div className="text-sm text-gray-600 mb-2">Jobs hôm nay</div>
+              <div className="text-sm text-gray-600 mb-2">Jobs Today</div>
               <div className="text-3xl font-bold text-blue-600">{stats.jobs_today || 0}</div>
             </div>
             <div className="bg-white rounded-lg shadow p-6">
-              <div className="text-sm text-gray-600 mb-2">Tổng jobs</div>
+              <div className="text-sm text-gray-600 mb-2">Total Jobs</div>
               <div className="text-3xl font-bold text-gray-900">{stats.total_jobs || 0}</div>
             </div>
             <div className="bg-white rounded-lg shadow p-6">
-              <div className="text-sm text-gray-600 mb-2">Tỷ lệ thành công</div>
+              <div className="text-sm text-gray-600 mb-2">Success Rate</div>
               <div className="text-3xl font-bold text-green-600">{stats.success_rate || 0}%</div>
             </div>
             <div className="bg-white rounded-lg shadow p-6">
-              <div className="text-sm text-gray-600 mb-2">Trung bình/phút</div>
+              <div className="text-sm text-gray-600 mb-2">Average/Minute</div>
               <div className="text-3xl font-bold text-purple-600">{stats.avg_per_minute || 0}</div>
             </div>
           </div>
@@ -301,7 +301,7 @@ export default function ClientDashboard() {
         {/* Recent Jobs */}
         <div className="bg-white rounded-lg shadow">
           <div className="px-6 py-4 border-b">
-            <h2 className="text-xl font-bold text-gray-900">Jobs gần đây</h2>
+            <h2 className="text-xl font-bold text-gray-900">Recent Jobs</h2>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -310,15 +310,15 @@ export default function ClientDashboard() {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Job ID</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Text</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Kết quả</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Thời gian</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Result</th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {jobs.length === 0 ? (
                   <tr>
                     <td colSpan="5" className="px-6 py-4 text-center text-gray-500">
-                      Chưa có jobs nào
+                      No jobs yet
                     </td>
                   </tr>
                 ) : (
@@ -331,28 +331,26 @@ export default function ClientDashboard() {
                         {job.text?.substring(0, 50)}...
                       </td>
                       <td className="px-6 py-4">
-                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                          job.status === 'completed' ? 'bg-green-100 text-green-800' :
-                          job.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
-                          job.status === 'failed' ? 'bg-red-100 text-red-800' :
-                          'bg-gray-100 text-gray-800'
-                        }`}>
+                        <span className={`px-2 py-1 text-xs font-semibold rounded-full ${job.status === 'completed' ? 'bg-green-100 text-green-800' :
+                            job.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
+                              job.status === 'failed' ? 'bg-red-100 text-red-800' :
+                                'bg-gray-100 text-gray-800'
+                          }`}>
                           {job.status}
                         </span>
                       </td>
                       <td className="px-6 py-4">
                         {job.moderation_result && (
-                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${
-                            job.moderation_result === 'allowed' ? 'bg-green-100 text-green-800' :
-                            job.moderation_result === 'review' ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
+                          <span className={`px-2 py-1 text-xs font-semibold rounded-full ${job.moderation_result === 'allowed' ? 'bg-green-100 text-green-800' :
+                              job.moderation_result === 'review' ? 'bg-yellow-100 text-yellow-800' :
+                                'bg-red-100 text-red-800'
+                            }`}>
                             {job.moderation_result}
                           </span>
                         )}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500">
-                        {job.created_at ? new Date(job.created_at).toLocaleString('vi-VN') : '-'}
+                        {job.created_at ? new Date(job.created_at).toLocaleString('en-US') : '-'}
                       </td>
                     </tr>
                   ))

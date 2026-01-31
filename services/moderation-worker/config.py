@@ -35,6 +35,15 @@ class Config:
     USE_MULTITASK_MODEL = os.getenv('USE_MULTITASK_MODEL', 'true').lower() == 'true'
     # Increased threshold to reduce false positives - only block clearly toxic content
     CONFIDENCE_THRESHOLD = float(os.getenv('CONFIDENCE_THRESHOLD', 0.7))
+
+    # Image & Audio Model Settings
+    IMAGE_MODEL_NAME = os.getenv('IMAGE_MODEL_NAME', 'Falconsai/nsfw_image_detection')
+    WHISPER_MODEL_SIZE = os.getenv('WHISPER_MODEL_SIZE', 'small')
+    
+    # OpenRouter API for Vision OCR (replaces EasyOCR)
+    OPENROUTER_API_KEY = os.getenv('OPENROUTER_API_KEY', '')
+    OPENROUTER_VISION_MODEL = os.getenv('OPENROUTER_VISION_MODEL', 'qwen/qwen2.5-vl-72b-instruct:free')
+    USE_OPENROUTER_OCR = os.getenv('USE_OPENROUTER_OCR', 'true').lower() == 'true'
     
     # Logging
     LOG_LEVEL = os.getenv('LOG_LEVEL', 'INFO')

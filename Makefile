@@ -37,6 +37,10 @@ clean:
 
 create-admin:
 	@echo "Creating default admin user..."
-	docker-compose exec postgres psql -U vietcms -d vietcms_moderation -c "INSERT INTO admins (email, password_hash, name, role, is_active, created_at) VALUES ('admin@vietcms.com', 'admin123', 'System Administrator', 'admin', true, now()) ON CONFLICT (email) DO NOTHING;"
+	docker-compose exec postgres psql -U vietcms -d vietcms_moderation -f /scripts/create-admin.sql
 	@echo "Admin user created! Login: admin@vietcms.com / admin123"
+
+setup-demo:
+	@echo "Setting up demo client..."
+	powershell -ExecutionPolicy Bypass -File ./scripts/setup-demo-client.ps1
 

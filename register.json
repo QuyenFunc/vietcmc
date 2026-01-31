@@ -1,6 +1,0 @@
-﻿{
-  "organization_name": "Demo Organization",
-  "email": "demo@example.com",
-  "password": "demo123456",
-  "webhook_url": "http://demo-website:5001/webhooks/moderation"
-}

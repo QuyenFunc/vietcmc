@@ -27,14 +27,14 @@ export default function Register() {
 
     // Validate passwords match
     if (formData.password !== formData.confirm_password) {
-      setError('Mật khẩu xác nhận không khớp!')
+      setError('Passwords do not match!')
       setLoading(false)
       return
     }
 
     // Validate password length
     if (formData.password.length < 8) {
-      setError('Mật khẩu phải có ít nhất 8 ký tự!')
+      setError('Password must be at least 8 characters long!')
       setLoading(false)
       return
     }
@@ -42,7 +42,7 @@ export default function Register() {
     try {
       const response = await fetch('/api/v1/register', {
         method: 'POST',
-        headers: { 
+        headers: {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
@@ -58,10 +58,10 @@ export default function Register() {
       if (data.success) {
         setCredentials(data.data)
       } else {
-        setError(data.error?.message || 'Đăng ký thất bại')
+        setError(data.error?.message || 'Registration failed')
       }
     } catch (err) {
-      setError('Không thể kết nối đến server. Vui lòng thử lại.')
+      setError('Could not connect to server. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -69,7 +69,7 @@ export default function Register() {
 
   const copyToClipboard = (text) => {
     navigator.clipboard.writeText(text)
-    alert('Đã copy vào clipboard!')
+    alert('Copied to clipboard!')
   }
 
   const downloadCredentials = () => {
@@ -86,7 +86,7 @@ HMAC Secret: ${credentials.hmac_secret}
 
 Created: ${credentials.created_at}
 
-⚠️ GIỮ BÍ MẬT - Không chia sẻ với người khác!
+⚠️ KEEP SECRET - Do not share with others!
 `
     const blob = new Blob([content], { type: 'text/plain' })
     const url = URL.createObjectURL(blob)
@@ -97,7 +97,7 @@ Created: ${credentials.created_at}
     URL.revokeObjectURL(url)
   }
 
-  // Success Screen - Hiển thị credentials
+  // Success Screen - Show credentials
   if (credentials) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
@@ -110,10 +110,10 @@ Created: ${credentials.created_at}
               </svg>
             </div>
             <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              Đăng ký thành công! 🎉
+              Registration Successful! 🎉
             </h1>
             <p className="text-gray-600 text-lg">
-              Tài khoản của bạn đã được tạo. Vui lòng lưu thông tin bên dưới.
+              Your account has been created. Please save the information below.
             </p>
           </div>
 
@@ -127,13 +127,13 @@ Created: ${credentials.created_at}
               </div>
               <div className="ml-3">
                 <h3 className="text-sm font-medium text-red-800">
-                  ⚠️ CHÚ Ý QUAN TRỌNG
+                  ⚠️ IMPORTANT NOTICE
                 </h3>
                 <div className="mt-2 text-sm text-red-700">
                   <ul className="list-disc list-inside space-y-1">
-                    <li>Thông tin này <strong>CHỈ HIỂN THỊ MỘT LẦN DUY NHẤT</strong></li>
-                    <li>Vui lòng copy hoặc download ngay</li>
-                    <li>Không chia sẻ với người khác</li>
+                    <li>This information is <strong>SHOWN ONLY ONCE</strong></li>
+                    <li>Please copy or download it now</li>
+                    <li>Do not share it with others</li>
                   </ul>
                 </div>
               </div>
@@ -237,23 +237,23 @@ Created: ${credentials.created_at}
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
               </svg>
-              Download dưới dạng file
+              Download as file
             </button>
             <Link
               to="/login"
               className="flex-1 px-6 py-3 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition font-semibold text-center"
             >
-              Đăng nhập Admin
+              Admin Login
             </Link>
           </div>
 
           {/* Help Text */}
           <div className="mt-6 p-4 bg-blue-50 rounded-lg">
-            <h3 className="font-semibold text-blue-900 mb-2">📚 Bước tiếp theo:</h3>
+            <h3 className="font-semibold text-blue-900 mb-2">📚 Next Steps:</h3>
             <ol className="list-decimal list-inside space-y-1 text-sm text-blue-800">
-              <li>Sử dụng API Key và HMAC Secret để gọi API</li>
-              <li>Đọc tài liệu tại: <a href="/docs" className="underline">docs/api-specification.md</a></li>
-              <li>Sử dụng Client SDK (Python/NodeJS) để tích hợp nhanh</li>
+              <li>Use the API Key and HMAC Secret to call the API</li>
+              <li>Read the documentation at: <a href="/docs" className="underline">docs/api-specification.md</a></li>
+              <li>Use the Client SDK (Python/NodeJS) for fast integration</li>
             </ol>
           </div>
         </div>
@@ -271,14 +271,14 @@ Created: ${credentials.created_at}
             VietCMS Moderation
           </h1>
           <p className="text-gray-600">
-            Đăng ký tài khoản để sử dụng dịch vụ kiểm duyệt
+            Register an account to use the moderation service
           </p>
         </div>
 
         {/* Form Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            Đăng ký Client
+            Client Registration
           </h2>
 
           {/* Error Alert */}
@@ -301,7 +301,7 @@ Created: ${credentials.created_at}
             {/* Organization Name */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Tên tổ chức <span className="text-red-500">*</span>
+                Organization Name <span className="text-red-500">*</span>
               </label>
               <input
                 type="text"
@@ -309,7 +309,7 @@ Created: ${credentials.created_at}
                 value={formData.organization_name}
                 onChange={handleChange}
                 required
-                placeholder="VD: Công ty ABC"
+                placeholder="e.g. ABC Company"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               />
             </div>
@@ -329,14 +329,14 @@ Created: ${credentials.created_at}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               />
               <p className="mt-1 text-xs text-gray-500">
-                Email phải là duy nhất, không trùng với client khác
+                Email must be unique and not used by another client
               </p>
             </div>
 
             {/* Password */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Mật khẩu <span className="text-red-500">*</span>
+                Password <span className="text-red-500">*</span>
               </label>
               <input
                 type="password"
@@ -345,18 +345,18 @@ Created: ${credentials.created_at}
                 onChange={handleChange}
                 required
                 minLength="8"
-                placeholder="Ít nhất 8 ký tự"
+                placeholder="At least 8 characters"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               />
               <p className="mt-1 text-xs text-gray-500">
-                Dùng để đăng nhập vào dashboard của bạn
+                Used to log in to your dashboard
               </p>
             </div>
 
             {/* Confirm Password */}
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">
-                Xác nhận mật khẩu <span className="text-red-500">*</span>
+                Confirm Password <span className="text-red-500">*</span>
               </label>
               <input
                 type="password"
@@ -365,7 +365,7 @@ Created: ${credentials.created_at}
                 onChange={handleChange}
                 required
                 minLength="8"
-                placeholder="Nhập lại mật khẩu"
+                placeholder="Re-enter password"
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               />
             </div>
@@ -385,7 +385,7 @@ Created: ${credentials.created_at}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
               />
               <p className="mt-1 text-xs text-gray-500">
-                Địa chỉ để nhận kết quả kiểm duyệt (phải là HTTPS)
+                URL to receive moderation results (must be HTTPS)
               </p>
             </div>
 
@@ -399,7 +399,7 @@ Created: ${credentials.created_at}
                 </div>
                 <div className="ml-3">
                   <p className="text-sm text-blue-700">
-                    Sau khi đăng ký, bạn sẽ nhận được <strong>API Key</strong> và <strong>HMAC Secret</strong> để gọi API, và có thể đăng nhập vào dashboard để xem thống kê.
+                    After registration, you will receive an <strong>API Key</strong> and <strong>HMAC Secret</strong> to call the API, and you can log in to the dashboard to view statistics.
                   </p>
                 </div>
               </div>
@@ -417,14 +417,14 @@ Created: ${credentials.created_at}
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Đang xử lý...
+                  Processing...
                 </>
               ) : (
                 <>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Đăng ký ngay
+                  Register Now
                 </>
               )}
             </button>
@@ -433,9 +433,9 @@ Created: ${credentials.created_at}
           {/* Footer Links */}
           <div className="mt-6 text-center text-sm text-gray-600">
             <p>
-              Đã có tài khoản?{' '}
+              Already have an account?{' '}
               <Link to="/client-login" className="text-blue-600 hover:text-blue-700 font-semibold">
-                Đăng nhập Client
+                Client Login
               </Link>
               {' '} | {' '}
               <Link to="/login" className="text-gray-600 hover:text-gray-700">
@@ -448,7 +448,7 @@ Created: ${credentials.created_at}
         {/* Help Text */}
         <div className="mt-6 text-center text-sm text-gray-600">
           <p>
-            Cần hỗ trợ?{' '}
+            Need help?{' '}
             <a href="mailto:support@vietcms.com" className="text-blue-600 hover:underline">
               support@vietcms.com
             </a>

@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  demo-website:
+    build: .
+    container_name: vietcms-demo-website
+    ports:
+      - "5000:5000"
+    environment:
+      - VIETCMS_API_URL=http://host.docker.internal:8000/api/v1
+      - VIETCMS_API_KEY=YOUR_API_KEY_HERE
+      - HMAC_SECRET=YOUR_HMAC_SECRET_HERE
+    restart: unless-stopped

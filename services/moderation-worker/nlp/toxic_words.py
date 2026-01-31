@@ -7,28 +7,38 @@ Coverage: 500+ toxic patterns, 1000+ variants
 Last Updated: 2025-11-04
 """
 
-# ==================== CẤP ĐỘ 1: NGHIÊM TRỌNG (AUTO REJECT) ====================
+# ==================== LEVEL 1: SEVERE (AUTO REJECT) ====================
 
-# Từ thô tục cực kỳ nghiêm trọng - EXPANDED với BIẾN THỂ
+# Extremely severe profanity - EXPANDED with VARIANTS
 SEVERE_PROFANITY = [
-    # ===== Từ liên quan đến tính dục =====
-    # Đụ/Địt variations (100+ variants)
-    'đụ', 'địt', 'đit', 'dit', 'du', 'dụ', 'dịt', 'dit', 'đyt', 'dyt',
-    'đục', 'dục', 'đủ', 'dư', 'đư', 'đứ', 'dứ', 'đứt', 'dứt',
-    'đu', 'dù', 'dú', 'đú', 'dũ', 'đũ',
-    'd u c', 'd u t', 'd i t', 'd ụ', 'd ị t', 'đ ụ', 'đ ị t',
-    'd.u.c', 'd.i.t', 'd-u-t', 'd-i-t', 'd_u_t', 'd_i_t',
-    'duc', 'dut', 'djt', 'dj t', 'dịch', 'đich',
-    'đu7', 'd1t', 'đ1t', 'd!t', 'đ!t', 'd.u.m', 'đ.u.m',
+    # ===== Sexual-related words =====
+    # Đụ/Địt - ONLY KEEP CLEAR PATTERNS
+    # REMOVED: 'du', 'dụ', 'đu', 'dù', 'dú', 'đú', 'dũ', 'đũ' - gây false positive với:
+    #   - duyên, duyệt, du lịch, du học, giáo dục, sử dụng, dữ liệu...
+    # REMOVED: 'đục', 'dục', 'đủ', 'dư', 'đư', 'dứ', 'đứ', 'dứt' - gây false positive với:
+    #   - giáo dục, dục vọng (hợp lệ trong context), đục lỗ, dư thừa...
     
-    # Lồn variations (80+ variants) 
-    'lồn', 'l0n', 'lol', 'lồl', 'lòn', 'lộn', 'lỗn', 'lõn',
+    # Clearly violating words (full diacritics or clearly obfuscated)
+    'đụ', 'địt',  # Chỉ 2 từ chính với dấu đầy đủ
+    'đit', 'dit', 'dịt', 'đyt', 'dyt',  # Unmistakable variants
+    'djt', 'dj t',  # Leetspeak variants
+    'd1t', 'đ1t', 'd!t', 'đ!t',  # Số/ký tự thay thế
+    
+    # Obfuscated patterns (có dấu phân cách rõ ràng - intentional bypass)
+    'd.i.t', 'd-i-t', 'd_i_t', 'đ.ị.t', 'đ-ị-t', 'đ_ị_t',
+    'd i t', 'đ i t', 'd  i  t', 'đ  i  t',
+    'd.u.m', 'đ.u.m', 'd.u.c', 'd-u-t', 'd_u_t',
+    # NOTE: Single words like 'du', 'dụ', 'đu' REMOVED - left for context analyzer
+    
+    # Lồn variations - ONLY KEEP CLEAR PATTERNS
+    # REMOVED: single 'lon' - causes false positives with "lon bia", "hài lòng"
+    'lồn',  # Main word with full diacritics
+    'l0n', 'l0l', 'lo0n', '10n', '1on',  # Clear leetspeak
+    # Obfuscated patterns
     'l o n', 'l ồ n', 'l.o.n', 'l.ồ.n', 'l-o-n', 'l_o_n',
-    'lờn', 'lờng', 'lồng', 'l0ng', 'l0l', 'lo0n', 
-    'l0.n', 'l.0.n', 'l-0-n', 'l_0_n', 'lon`', 'lon~',
-    '1ồn', '1on', '10n', 'ιồn', 'ιon',
-    # NOTE: "lon" đơn lẻ REMOVED vì có từ "hài lòng", "vui lòng" hợp lệ
-    # Chỉ match khi trong context vi phạm (patterns sẽ bắt)
+    'l0.n', 'l.0.n', 'l-0-n', 'l_0_n',
+    # Unicode lookalikes
+    '1ồn', 'ιồn', 'ιon',
     
     # Cặc variations (60+ variants)
     'cặc', 'cac', 'cak', 'cắc', 'cặk', 'cak', 'cek', 'cạc',
@@ -41,12 +51,12 @@ SEVERE_PROFANITY = [
     'buồi', 'buoi', 'bu0i', 'buời', 'búi', 'bùi',
     'bu ồ i', 'bu.ồ.i', 'bu-ồ-i', 'bu_ồ_i',
     
-    # Bộ phận sinh dục
+    # Genitalia
     'dương vật', 'duong vat', 'âm đạo', 'am dao', 'âm hộ', 'am ho',
     'âm vật', 'âm môn', 'dái', 'dai', 'bú cu', 'bu cu', 'bú cặc',
     'tinh trùng', 'tinh dịch', 'xuất tinh', 'xuat tinh',
     
-    # Hành vi tình dục
+    # Sexual acts
     'chịch', 'chich', 'chịt', 'chit', 'ch!ch', 'ch1ch',
     'địm', 'dim', 'đym', 'dym', 'nện', 'nen', 'bú lồn', 'bu lon',
     'liếm lồn', 'liem lon', 'mút cu', 'mut cu', 'mút cặc',
@@ -54,7 +64,7 @@ SEVERE_PROFANITY = [
     'pussy', 'dick', 'cock', 'penis', 'vagina', 'cunt',
     'blowjob', 'blow job', 'handjob', 'hand job', 
     
-    # ===== Từ chửi thề nghiêm trọng =====
+    # ===== Severe profanity =====
     # ĐM/DCM family (100+ variants)
     'đm', 'dm', 'đ m', 'd m', 'đ.m', 'd.m', 'đ-m', 'd-m', 'đ_m', 'd_m',
     'đmm', 'dmm', 'đ mm', 'd mm', 'đ.m.m', 'd.m.m',
@@ -89,7 +99,7 @@ SEVERE_PROFANITY = [
     'đê o', 'de o', 'đêo', 'đeo`', 'đeo~',
     'đ!o', 'd!o', 'đ3o', 'd3o',
     
-    # Cứt/Đái/Nước mũi
+    # Excrement/Bodily fluids
     'cứt', 'cut', 'c ứt', 'c.ứ.t', 'c-ứ-t', 'cứ t',
     'đái', 'dai', 'đ ái', 'đ.á.i', 'đa i',
     'đi đái', 'di dai', 'đi ỉa', 'di ia', 'đi cầu', 'di cau',
@@ -132,9 +142,9 @@ SEVERE_PROFANITY = [
     'lồn mẹ', 'lon me', 'lồn cha', 'lon cha', 'cặc cha', 'cac cha',
 ]
 
-# ===== Xúc phạm nghiêm trọng - EXPANDED =====
+# ===== Severe Insults - EXPANDED =====
 SEVERE_INSULTS = [
-    # ===== Xúc phạm trí tuệ (chỉ khi nhắm vào CÁ NHÂN) =====
+    # ===== Intellectual insults (only when targeting INDIVIDUALS) =====
     'ngu', 'ngu ngốc', 'ngu người', 'ngu vãi', 'ngu như lợn', 'ngu si', 'ngu xuẩn',
     'ngu như chó', 'ngu xuẩn', 'ngu dốt', 'ngu si', 'ngu vl', 'ngu vcl',
     'đần', 'đần độn', 'đần khờ', 'đần như bò', 'đần thật', 'đần vl',
@@ -145,8 +155,8 @@ SEVERE_INSULTS = [
     'retard', 'retarded', 'stupid', 'idiot', 'moron', 'dumb', 'dumbass',
     'imbecile', 'fool', 'foolish', 'brainless', 'mindless',
     
-    # ===== Xúc phạm nhân phẩm =====
-    # So sánh động vật (NGHIÊM TRỌNG)
+    # ===== Character assassination / Dignity insults =====
+    # Animal comparisons (SEVERE)
     'đồ chó', 'đồ lợn', 'thằng chó', 'con chó', 'đồ súc vật',
     'thằng lợn', 'con lợn', 'đồ heo', 'thằng heo', 'con heo',
     'đồ bò', 'thằng bò', 'con bò', 'đồ trâu', 'thằng trâu',
@@ -155,7 +165,7 @@ SEVERE_INSULTS = [
     'đồ rắn', 'đồ rết', 'đồ bọ', 'đồ giun',
     'súc vật', 'loài vật', 'thú vật', 'vật nuôi',
     
-    # Xúc phạm phẩm giá
+    # Dignity insults
     'đồ khốn', 'thằng khốn', 'con khốn', 'khốn nạn', 'khốn kiếp',
     'đồ bẩn', 'thằng bẩn', 'đồ bẩn thỉu', 'đồ dơ bẩn',
     'đồ rác rưởi', 'rác rưởi', 'đồ phế thải', 'đồ rác', 'thứ rác',
@@ -164,36 +174,36 @@ SEVERE_INSULTS = [
     'đồ vô giá trị', 'thứ rác', 'đồ bỏ đi', 'đồ thừa thãi',
     'scum', 'trash', 'garbage', 'worthless', 'useless',
     
-    # ===== Xúc phạm đạo đức / Tình dục =====
-    # Mại dâm
+    # ===== Moral / Sexual insults =====
+    # Prostitution
     'đồ điếm', 'con điếm', 'đĩ', 'điếm đĩ', 'cave', 'gái cave',
     'con đĩ', 'thằng đĩ', 'gái điếm', 'gái mại dâm', 'đĩ thõa',
     'gái rẻ tiền', 'đồ rẻ rách', 'đồ bán dâm', 'bán dâm',
     'gái gọi', 'gai goi', 'gái bao', 'gái ngành',
-    'prostitute', 'hooker', 'slut', 'whore', 'hoe', 'ho',
+    'prostitute', 'hooker', 'slut', 'whore', 'hoe',
     
-    # Giáo dục/Văn hóa
+    # Education/Culture
     'đồ mất dạy', 'vô giáo dục', 'vô văn hóa', 'thiếu văn hóa',
     'đồ không có giáo dục', 'thiếu dạy bảo', 'dốt nát',
     'không biết học', 'thất học', 'lạc hậu',
     
-    # ===== Đe dọa bạo lực - NGHIÊM TRỌNG =====
-    # Giết/Chém
+    # ===== Violence threats - SEVERE =====
+    # Kill/Stab
     'giết', 'giết mày', 'chém', 'chém mày', 'chém chết',
     'đánh chết', 'đập chết', 'giết chết', 'giết bỏ',
     'tao đánh mày', 'tao giết mày', 'tao chém mày',
     'kill', 'murder', 'kill you', 'gonna kill',
     
-    # Bạo lực khác
+    # Other violence
     'đánh đập', 'đập đầu', 'đấm mặt', 'đấm cho',
     'tát cho', 'vả mặt', 'đá đít',
     'beat', 'beat up', 'smash', 'punch',
 ]
 
-# ===== HATE SPEECH - PHân biệt đối xử =====
-# Đây là phần CỰC KỲ QUAN TRỌNG bị thiếu trong hệ thống cũ!
+# ===== HATE SPEECH - Discrimination =====
+# This is a CRITICAL part missing in old systems!
 
-# Phân biệt LGBTQ+ (NGHIÊM TRỌNG)
+# LGBTQ+ Discrimination (SEVERE)
 HATE_LGBTQ = [
     # Gay/Lesbian slurs
     'gay đáng ghét', 'gay đáng khinh', 'gay đáng chết', 
@@ -217,13 +227,13 @@ HATE_LGBTQ = [
     'đồ tha hóa', 'thằng tha hóa',
     'queer', 'faggot', 'fag', 'dyke',
     
-    # Context: khinh thường/ghét bỏ
+    # Context: contempt/hatred
     'gay đáng bị', 'gay cần phải', 'tiêu diệt gay',
     'đáng bị khinh thường', 'đáng bị khinh', 'đáng khinh thường',
     'đáng ghét', 'đáng chết', 'nên chết',
 ]
 
-# Phân biệt chủng tộc/Dân tộc (NGHIÊM TRỌNG)  
+# Racial/Ethnic Discrimination (SEVERE)  
 HATE_RACISM = [
     # Chủng tộc Trung Quốc
     'đồ tàu', 'tàu khựa', 'thằng tàu', 'con tàu', 'bọn tàu',
@@ -240,12 +250,12 @@ HATE_RACISM = [
     'dân tộc thiểu số bẩn', 'dân miền núi ngu',
     'ngoại tộc', 'man rợ',
     
-    # Phân biệt khu vực
+    # Regional discrimination
     'đầu rồng đuôi tôm', 'đầu gấu', 'đầu bò',
     'miền bắc ngu', 'miền nam láo', 'miền trung nghèo',
 ]
 
-# Phân biệt tôn giáo
+# Religious Discrimination
 HATE_RELIGION = [
     # Các tôn giáo
     'đạo đức giả', 'đạo ốc', 'tu sĩ giả',
@@ -256,25 +266,25 @@ HATE_RELIGION = [
     'phật tử ngu', 'cơ đốc giáo kém', 'hồi giáo bạo lực',
 ]
 
-# Phân biệt giới tính
+# Gender Discrimination
 HATE_SEXISM = [
-    # Khinh thường phụ nữ
+    # Contempt for women
     'đàn bà tóc dài trí ngắn', 'đàn bà ngu', 'con gái ngu',
     'phụ nữ chỉ biết sinh đẻ', 'phụ nữ thuộc về bếp núc',
     'gái chỉ biết bán thân', 'gái là đồ chơi',
     'mấy con gái', 'mấy con', 'đàn bà vô dụng',
     
-    # Khinh thường nam giới
+    # Contempt for men
     'đàn ông rác rưởi', 'đàn ông chỉ biết chơi',
     'trai giống loài vật', 'nam giới vô dụng',
 ]
 
-# ===== NỘI DUNG TÌNH DỤC / KHIÊU DÂM (NGHIÊM TRỌNG) =====
-# Đây là phần bị thiếu hoàn toàn! Cần bổ sung ngay!
+# ===== SEXUAL CONTENT / PORNOGRAPHY (SEVERE) =====
+# This part was completely missing! Adding now!
 
-# Nội dung khiêu dâm rõ ràng
+# Explicit pornographic content
 SEXUAL_EXPLICIT = [
-    # Hành vi tình dục cụ thể
+    # Specific sexual acts
     'bú cu', 'bu cu', 'bú cặc', 'bu cac', 'bú lồn', 'bu lon',
     'liếm lồn', 'liem lon', 'liếm cặc', 'liem cac',
     'mút cu', 'mut cu', 'mút cặc', 'mut cac',
@@ -284,39 +294,39 @@ SEXUAL_EXPLICIT = [
     'blowjob', 'blow job', 'handjob', 'hand job',
     '69', 'sixty nine', 'doggy', 'doggy style',
     
-    # Bộ phận sinh dục chi tiết
+    # Detailed genitalia
     'dương vật to', 'duong vat to', 'cặc to', 'cac to',
     'lồn chặt', 'lon chat', 'lồn bự', 'lon bu',
     'vú to', 'vu to', 'vú bự', 'vu bu', 'ngực to', 'nguc to',
     'mông to', 'mong to', 'mông bự', 'mong bu', 'đít to', 'dit to',
     
-    # Xuất tinh, cực khoái
+    # Ejaculation, orgasm
     'xuất tinh', 'xuat tinh', 'ra nước', 'ra nuoc',
     'cực khoái', 'cuc khoai', 'lên đỉnh', 'len dinh',
     'orgasm', 'cum', 'cumming', 'ejaculate',
 ]
 
-# Nội dung gợi dục / khiêu khích tình dục
+# Suggestive / Sexually provocative content
 SEXUAL_SUGGESTIVE = [
-    # Nhận xét về ngoại hình mang tính tình dục
+    # Sexually-charged physical comments
     'gái xinh bú cu', 'gai xinh bu cu',
     'thân hình gợi cảm', 'than hinh goi cam',
     'sexy', 'sexy quá', 'sexy vãi', 'sexy vl',
     'dâm', 'dam', 'dâm đãng', 'dam dang', 'dâm dục', 'dam duc',
     'dâm dật', 'dam dat', 'tục tĩu', 'tuc tiu',
     
-    # Hành động gợi dục
+    # Sexually suggestive actions
     'cởi áo', 'coi ao', 'cởi quần', 'coi quan', 'lột đồ', 'lot do',
     'khỏa thân', 'khoa than', 'trần truồng', 'tran truong',
     'nude', 'naked', 'strip', 'stripper',
     
-    # Nhận xét mang tính tình dục về người khác
+    # Sexually-charged comments about others
     'thế này chắc', 'the nay chac', 'chắc giỏi', 'chac gioi',
     'giỏi trên giường', 'gioi tren giuong', 'giỏi chuyện ấy', 'gioi chuyen ay',
     'phục vụ tốt', 'phuc vu tot', 'làm tình giỏi', 'lam tinh gioi',
 ]
 
-# Nội dung yêu cầu/gạ gẫm tình dục
+# Sexual solicitation / propositioning content
 SEXUAL_SOLICITATION = [
     # Gạ gẫm
     'đi nhà nghỉ', 'di nha nghi', 'đi khách sạn', 'di khach san',
@@ -324,7 +334,7 @@ SEXUAL_SOLICITATION = [
     'cho ngủ một đêm', 'cho ngu mot dem',
     'wanna fuck', 'wanna sex', 'let me fuck',
     
-    # Mua bán sex
+    # Sex trade/buying
     'bao nhiêu một đêm', 'bao nhieu mot dem',
     'giá bao nhiêu', 'gia bao nhieu', 'giá em bao nhiêu',
     'bán thân', 'ban than', 'bán dâm', 'ban dam',
@@ -332,39 +342,39 @@ SEXUAL_SOLICITATION = [
     'how much for sex', 'price for sex',
 ]
 
-# ==================== CẤP ĐỘ 2: VỪA PHẢI (REVIEW) ====================
+# ==================== LEVEL 2: MODERATE (REVIEW) ====================
 
-# Từ tiêu cực vừa phải - CHỈ DÀNH CHO NỘI DUNG THỰC SỰ XÚC PHẠM
-# KHÔNG bao gồm đánh giá sản phẩm/dịch vụ hợp lệ
+# Moderate negative words - ONLY FOR TRULY OFFENSIVE CONTENT
+# DOES NOT include valid product/service reviews
 MODERATE_NEGATIVE = [
-    # Chế nhạo, châm biếm CÁ NHÂN
+    # Mocking, sarcasm targeting INDIVIDUALS
     'ngu thế', 'ngu thí', 'ngu vậy', 'ngu không',
     'khùng', 'điên', 'điên khùng', 'mất trí',
     'ngáo đá',
     'crazy', 'insane', 'mental',
     
-    # Coi thường CÁ NHÂN (không phải sản phẩm)
+    # Contempt for INDIVIDUALS (not products)
     'đồ rác', 'đồ bỏ đi', 'thứ rác',
     'kém người', 'hạ đẳng',
     'trash people', 'garbage person',
     
-    # Lừa đảo (chỉ giữ từ nghiêm trọng)
+    # Fraud (only severe words kept)
     'lừa đảo', 'lừa gặt', 'lừa bịp', 
     'lừa đảo khách hàng', 'gian lận', 'gian dối',
     'lừa tiền', 'lừa của', 'ăn cắp',
     'scam', 'fraud',
 ]
 
-# Từ công kích cá nhân
+# Personal attack words
 PERSONAL_ATTACKS = [
     'mày', 'mi', 'tao', 'tau', 'thằng', 'con',
     'đứa', 'thằng cha', 'đồ cha', 'cái cha',
     'cậu ta', 'thằng này', 'con này', 'đứa này',
 ]
 
-# ==================== CẤP ĐỘ 3: NGHI NGỜ (CONTEXT-BASED) ====================
+# ==================== LEVEL 3: SUSPICIOUS (CONTEXT-BASED) ====================
 
-# Từ khóa spam
+# Spam keywords
 SPAM_INDICATORS = [
     'inbox', 'zalo', 'liên hệ ngay', 'đặt hàng ngay',
     'sale off', 'giảm giá', 'khuyến mãi',
@@ -373,29 +383,32 @@ SPAM_INDICATORS = [
 ]
 
 # ==================== PATTERNS (REGEX) - ENTERPRISE EDITION ====================
-# Nâng cấp patterns với detection phức tạp hơn để bắt bypass
+# Upgraded patterns with more complex detection to catch bypasses
 
 TOXIC_PATTERNS = [
-    # ===== Biến thể "đụ/địt" - EXPANDED =====
-    # Base patterns
-    r'\b[dđ][uụùúủũưừứửữự][ctmnị]?\b',  # đụ, dụ, đục, đụt, đụm, đụn
-    r'\b[dđ][ịiìíỉĩị][tpckệ]\b',  # địt, dịt, đit, địch (MUST have ending char)
-    r'\b[dđ][ụựủúũưừứửữự][ctmn]?\s*[mc][aáảãạăắằẳẵặâấầẩẫậeéẹêếềểễệ]',  # đụ má, địt mẹ
+    # ===== "địt" variants - REQUIRE ENDING CHARACTERS =====
+    # REMOVED: r'\b[dđ][uụùúủũưừứửữự][ctmnị]?\b' - matching single "du" caused false positives
+    # Only match if there is a CLEAR ending character
+    r'\b[dđ][ịiìíỉĩị][tpk]\b',  # địt, dịt, đit, đík (MUST have t/p/k)
+    r'\b[dđ][ụựủúũ][tc]\b',  # đụt, đục (MUST have t/c)
+    r'\b[dđ][ụựủúũưừứửữự][tmn]\s*[mc][aáảãạăắằẳẵặâấầẩẫậeéẹêếềểễệ]',  # đụ má, địt mẹ
     
-    # Separated patterns (bypass với space/dot/dash)
-    r'\b[dđ][\s\._\-]{0,2}[uụùúủũưừứửữự][\s\._\-]{0,2}[ctmn]?\b',
-    r'\b[dđ][\s\._\-]{0,2}[ịiìíỉĩị][\s\._\-]{0,2}[tp]\b',
+    # Separated patterns (bypass rõ ràng - có dấu phân cách)
+    r'\b[dđ][\s\._\-]+[ịiìíỉĩị][\s\._\-]*[tp]\b',  # đ.ị.t, d-i-t
+    r'\b[dđ][\s\._\-]+[uụùúủũưừứửữự][\s\._\-]*[tc]\b',  # đ.ụ.t
     
     # Leet speak / Number substitution
-    r'\b[dđ][u1!@][ct]?\b',  # d1t, dụ1, d@t
-    r'\b[dđ]!+[tp]\b',  # đ!t, d!p
+    r'\b[dđ][1!][t]\b',  # d1t, đ!t (MUST have t)
+    r'\b[dđ]![tp]\b',  # đ!t, d!p
     
-    # ===== Biến thể "lồn" - EXPANDED =====
-    r'\bl[oồòóỏõọơờớởỡợ0][nl]g?\b',  # lon, lồn, l0n, lòng
-    r'\bl[\s\._\-]{0,2}[oồòóỏõọơờớởỡợ0][\s\._\-]{0,2}[nl]\b',  # l.o.n, l-o-n
-    r'\bl[o0@][nl1!]\b',  # l0n, lo1, l@n
+    # ===== "lồn" variants - ONLY OBFUSCATED =====
+    # REMOVED: r'\bl[oồòóỏõọơờớởỡợ0][nl]g?\b' - matching "lon", "lòng" caused false positives
+    # Only match if there is clear evidence of obfuscation
+    r'\bl[0][n]\b',  # l0n (số 0 thay o)
+    r'\bl[\s\._\-]+[oồ0][\s\._\-]*[n]\b',  # l.o.n, l-o-n (có dấu phân cách)
+    r'\b1[oồ0]n\b',  # 1on, 10n (số 1 thay l)
     
-    # ===== Biến thể "cặc" - EXPANDED =====
+    # ===== "cặc" variants - EXPANDED =====
     r'\bc[aăắằẳẵặâấầẩẫậáảãạặ@][ckpc]\b',  # cặc, cac, c@c, cák
     r'\bc[\s\._\-]{0,2}[aăắằẳẵặâấầẩẫậáảãạặ@][\s\._\-]{0,2}[ckpc]\b',  # c.a.c, c-a-c
     r'\b[ck][a@4][ck]\b',  # c@c, k@k, c4c
@@ -421,7 +434,10 @@ TOXIC_PATTERNS = [
     r'\bc[\s\._\-]{0,2}m[\s\._\-]{0,2}m+\b',  # cmm, c.m.m
     
     # ===== Đéo family =====
-    r'\b[dđ][eéèẻẽẹêếềểễệ][o0@]?\b',  # đéo, deo, đê, đe, d3o
+    # FIXED: Must have 'o' ending to avoid matching 'đề', 'để', 'đe' (common words)
+    r'\b[dđ][eéèẻẽẹêếềểễệ][oóòọõỏô0@]\b',  # đéo, đèo, deo - REQUIRES 'o' ending
+    r'\bđéo\b',  # Exact match
+    r'\bdeo\b',  # Without diacritics (when preceded by obfuscation context)
     
     # ===== HATE SPEECH PATTERNS =====
     # LGBTQ+ hate
@@ -450,7 +466,7 @@ TOXIC_PATTERNS = [
     r'\bn[gq]u\s+(?:vãi|vl|vcl|vkl)\s*(?:l[oồ]n|cứt|chó)',
     r'(?:đầu|óc|não)\s+(?:lợn|chó|bò|đất|gối|cá\s*vàng|gà)',
     
-    # ===== ĐE DỌA (THREATS) =====
+    # ===== THREATS =====
     r'(?:tao|tau|mình|tôi|t)\s+(?:giết|chém|đánh|đập|kill)\s+(?:mày|mi|m|cậu|bạn)',
     r'(?:giết|chém|đánh|đập)\s+(?:chết|tới\s*chết|cho\s*chết)',
     
@@ -484,14 +500,14 @@ TOXIC_PATTERNS = [
 
 # ==================== CONTEXT WORDS ====================
 
-# Từ làm tăng mức độ nghiêm trọng
+# Words that increase severity
 SEVERITY_BOOSTERS = [
     'vãi', 'vcl', 'vl', 'quá', 'cực', 'siêu',
     'khủng khiếp', 'kinh khủng', 'kinh dị',
     'chết được', 'chết tiệt', 'khốn nạn',
 ]
 
-# Từ giảm mức độ nghiêm trọng (context positive)
+# Words that reduce severity (context positive)
 SEVERITY_REDUCERS = [
     'không', 'chẳng', 'chả', 'đâu có',
     'ai bảo', 'đùa thôi', 'đùa mà',
@@ -499,14 +515,188 @@ SEVERITY_REDUCERS = [
 
 # ==================== ALLOWED EXCEPTIONS ====================
 
-# Từ có thể chứa toxic substring nhưng OK trong context
+# Words that may contain toxic substrings but are OK in context
+# CRITICAL: Added common words that were mis-matched by patterns
 ALLOWED_PHRASES = [
     'ngu ngốn',  # ngu ngốn vs ngu ngốc
     'cung cấp',  # cung vs cu
     'ngu cơ',    # ngủ cơ
+    
+    # ===== Words mis-matched by "cặc" pattern =====
+    # Pattern r'\bc[aăắằẳẵặâấầẩẫậáảãạặ@][ckpc]\b' matches "các", "cách", "cục", etc.
+    'các',       # CRITICAL: Plural indicator in Vietnamese (very common!)
+    'cách',      # Phương pháp/cách thức
+    'cục',       # Vật thể/cơ quan
+    'cấc',       # Không phải từ thông dụng nhưng tránh nhầm
+    'cắc',       # Tiếng kêu
+    'cạc',       # Card (máy tính)
+    
+    # ===== Other mis-matched words =====
+    'con các',   # Không phải "con cặc"
+    'các con',   # Các + con (số nhiều)
+    'các loại',  # Các loại
+    'các nhà',   # Các nhà
+    'các ông',   # Các ông
+    'các bà',    # Các bà
+    'một cách',  # Một cách
+    'bằng cách', # Bằng cách
+    'theo cách', # Theo cách
+    
+    # ===== Words containing substrings similar to toxic words =====
+    'nguồn',     # Nguồn gốc
+    'người',     # Con người
+    'nguyên',    # Nguyên nhân
+    'ngủ',       # Đi ngủ
+    'đột',       # Đột ngột
+    'lòng',      # Hài lòng
+    'sử dụng',   # Sử dụng
+    'dù',        # Dù sao
+    'dũng',      # Dũng cảm
+    
+    # ===== Đối tượng áp dụng (legal context) =====
+    'đối tượng áp dụng',
+    'cư trú',
+    'người nước ngoài',
+    
+    # ===== NEW: "gay" in valid contexts =====
+    # "gay" in Vietnamese has its own meanings (harsh, intense)
+    'gay gắt',       # Tình huống căng thẳng
+    'gay go',        # Khó khăn
+    'hứng gay',      # Hứng thú cao độ
+    'gay cấn',       # Kịch tính
+    'nóng gay',      # Nóng gắt
+    'vui gay',       # Vui vẻ
+    'hăng gay',      # Mạnh mẽ
+    
+    # ===== NEW: "lon" trong ngữ cảnh hợp lệ =====
+    'hài lòng',      # Hạnh phúc/thỏa mãn
+    'vui lòng',      # Xin vui lòng  
+    'làm ơn vui lòng',
+    'xin lòng',      # Xin
+    'toàn lòng',     # Toàn tâm
+    'lòng tin',      # Niềm tin
+    'lòng dạ',       # Tấm lòng
+    'lòng tốt',      # Sự tử tế
+    'lon bia',       # Lon nước giải khát
+    'lon nước',
+    'lon coca',
+    'lon pepsi',
+    'lon 7up',
+    'bia lon',       # Bia đóng lon
+    'nước lon',
+    
+    # ===== NEW: "du" trong ngữ cảnh hợp lệ =====
+    'du lịch',       # Du lịch
+    'du xuân',       # Du xuân
+    'du học',        # Du học
+    'du khách',      # Khách du lịch
+    'du hành',       # Chu du
+    'du thuyền',     # Tàu du lịch
+    'du ngoạn',      # Đi chơi
+    'du ca',         # Hát rong
+    'hướng dẫn du',  # Hướng dẫn viên
+    
+    # ===== NEW: Duyên family - RẤT QUAN TRỌNG =====
+    'duyên',         # Duyên dáng
+    'duyên dáng',
+    'duyên phận',
+    'duyên số',
+    'duyên nợ',
+    'có duyên',
+    'hữu duyên',
+    'vô duyên',
+    'nhân duyên',
+    'tình duyên',
+    
+    # ===== NEW: Duyệt family - VERY COMMON =====
+    'duyệt',         # Kiểm duyệt
+    'kiểm duyệt',
+    'phê duyệt',
+    'xét duyệt',
+    'được duyệt',
+    'chờ duyệt',
+    
+    # ===== NEW: Personal names =====
+    'phúc du',       # Rapper Phúc Du
+    'rapper',        # Context âm nhạc
+    
+    # ===== NEW: Educational context =====
+    'giáo dục',
+    'sử dụng',
+    'ứng dụng',
+    'tác dụng',
+    'công dụng',
+    'dữ liệu',
+    'dự án',
+    'dự báo',
+
+    
+    # ===== NEW: Product review context =====
+    'sản phẩm tệ',   # Đánh giá sản phẩm
+    'hàng tệ',
+    'dịch vụ tệ',
+    'chất lượng tệ',
+    'shop tệ',
+    'giao hàng tệ',
+    'đóng gói tệ',
+    'sản phẩm kém',
+    'hàng kém',
+    'dịch vụ kém',
+    'chất lượng kém',
+    'tệ quá',
+    'dở quá',
+    'kém quá',
+    'không được',
+    'không tốt',
+    'không ổn',
+    'không ok',
+    'thất vọng',
+    'hụt hẫng',
+    
+    # ===== NEW: Valid criticism =====
+    'đánh giá 1 sao',
+    'đánh giá thấp',
+    '1 sao',
+    '2 sao',
+    'one star',
+    'two star',
+    'không recommend',
+    'không giới thiệu',
+    'đừng mua',
+    'không nên mua',
+    'tránh xa',
+    'cảnh báo',
+    
+    # ===== NEW: Edit/Reddit/Credit =====
+    'edit',
+    'credit',
+    'reddit',
+    'editor',
+    'editing',
+    
+    'mọi người',     # Everyone
+    'mọi thứ',       # Everything
+    'mọi nơi',       # Everywhere
+    'mọi lúc',       # Anytime
+    'mọi khi',       # Whenever
+    'mọi ngày',      # Every day
+    'mọi việc',      # Everything (tasks)
+    'mọi chuyện',    # Everything (matters)
+    'mọi thời',      # All time
+    'mọi nỗi',       # All feelings
+    'mọi điều',      # Every thing
+    'mọi khía cạnh', # Every aspect
+    'mọi góc độ',    # Every angle
+    'mọi mặt',       # Every side
+    'tất cả mọi',    # All of every
+    'của mọi',       # Of every
+    'cho mọi',       # For every
+    'với mọi',       # With every
+    'trong mọi',     # In every
+    'ở mọi',         # At every
 ]
 
-# Context cho phép: khi phê bình ý kiến/quan điểm, KHÔNG phải cá nhân
+# Allowed contexts: when criticizing ideas/views, NOT individuals
 OPINION_CRITICISM_CONTEXT = [
     'ý kiến', 'quan điểm', 'suy nghĩ', 'nhận xét', 'đánh giá',
     'phát biểu', 'lập luận', 'tư tưởng', 'ý tưởng', 'luận điểm',
@@ -514,44 +704,44 @@ OPINION_CRITICISM_CONTEXT = [
 ]
 
 # ==================== SCORING SYSTEM - ENTERPRISE EDITION ====================
-# Nâng cấp scoring system với phân loại chi tiết hơn
+# Upgraded scoring system with more detailed classification
 
 SEVERITY_SCORES = {
     # Profanity & Vulgar language
-    'SEVERE_PROFANITY': 12,  # Tăng từ 10 -> 12 (nghiêm trọng hơn)
-    'SEVERE_INSULTS': 10,    # Tăng từ 8 -> 10
+    'SEVERE_PROFANITY': 12,  # Increased from 10 -> 12 (more severe)
+    'SEVERE_INSULTS': 10,    # Increased from 8 -> 10
     
-    # Hate Speech (CRITICAL - tự động reject)
-    'HATE_LGBTQ': 15,        # MỚI - Phân biệt đối xử LGBTQ+
-    'HATE_RACISM': 15,       # MỚI - Phân biệt chủng tộc
-    'HATE_RELIGION': 12,     # MỚI - Phân biệt tôn giáo
-    'HATE_SEXISM': 10,       # MỚI - Phân biệt giới tính
+    # Hate Speech (CRITICAL - auto reject)
+    'HATE_LGBTQ': 15,        # NEW - LGBTQ+ discrimination
+    'HATE_RACISM': 15,       # NEW - Racial discrimination
+    'HATE_RELIGION': 12,     # NEW - Religious discrimination
+    'HATE_SEXISM': 10,       # NEW - Gender discrimination
     
     # Sexual Content (CRITICAL)
-    'SEXUAL_EXPLICIT': 15,   # MỚI - Nội dung khiêu dâm rõ ràng
-    'SEXUAL_SUGGESTIVE': 10, # MỚI - Nội dung gợi dục
-    'SEXUAL_SOLICITATION': 12, # MỚI - Gạ gẫm tình dục
+    'SEXUAL_EXPLICIT': 15,   # NEW - Explicit pornographic content
+    'SEXUAL_SUGGESTIVE': 10, # NEW - Suggestive content
+    'SEXUAL_SOLICITATION': 12, # NEW - Sexual solicitation
     
     # Moderate violations
     'MODERATE_NEGATIVE': 5,
-    'PERSONAL_ATTACKS': 3,   # Giảm từ 6 -> 3 (chỉ tăng điểm nhẹ khi kết hợp với vi phạm khác)
+    'PERSONAL_ATTACKS': 3,   # Reduced from 6 -> 3 (only slight boost when combined with other violations)
     
     # Low severity
     'SPAM_INDICATORS': 3,
     
     # Pattern matching
-    'TOXIC_PATTERNS': 8,     # Tăng từ 7 -> 8 (patterns phức tạp hơn)
+    'TOXIC_PATTERNS': 8,     # Increased from 7 -> 8 (more complex patterns)
 }
 
-# ===== NGƯỠNG QUYẾT ĐỊNH - STRICT MODE =====
-# Giảm ngưỡng để bắt nhiều vi phạm hơn
+# ===== DECISION THRESHOLDS - STRICT MODE =====
+# Reduced thresholds to catch more violations
 
-REJECT_THRESHOLD = 10     # Giảm từ 8 -> 10 nhưng severity tăng lên
-REVIEW_THRESHOLD = 5      # Tăng từ 4 -> 5 để bắt nhiều case hơn
-WARNING_THRESHOLD = 3     # MỚI - Ngưỡng cảnh báo
+REJECT_THRESHOLD = 10     # Increased from 8 -> 10 but severity increased
+REVIEW_THRESHOLD = 5      # Increased from 4 -> 5 to catch more cases
+WARNING_THRESHOLD = 3     # NEW - Warning threshold
 
 # ===== AUTO-REJECT CATEGORIES (Bypass threshold) =====
-# Những category này tự động reject bất kể điểm số
+# These categories automatically reject regardless of score
 AUTO_REJECT_CATEGORIES = [
     'HATE_LGBTQ',
     'HATE_RACISM', 
@@ -560,25 +750,25 @@ AUTO_REJECT_CATEGORIES = [
 ]
 
 # ===== MULTIPLIER SYSTEM =====
-# Các yếu tố làm tăng/giảm điểm
+# Factors that increase/decrease score
 
 CONTEXT_MULTIPLIERS = {
     # Tăng mức độ nghiêm trọng
-    'has_personal_pronoun': 1.5,  # Có "mày", "tao" -> tấn công cá nhân
-    'has_severity_booster': 1.3,  # Có "vãi", "vcl", "quá"
-    'multiple_violations': 1.5,   # Nhiều vi phạm cùng lúc
-    'targeting_group': 2.0,       # Nhắm vào nhóm người (hate speech)
+    'has_personal_pronoun': 1.5,  # Has "mày", "tao" -> personal attack
+    'has_severity_booster': 1.3,  # Has "vãi", "vcl", "quá"
+    'multiple_violations': 1.5,   # Multiple simultaneous violations
+    'targeting_group': 2.0,       # Targeting specific groups (hate speech)
     
     # Giảm mức độ (cho phép phê bình hợp lý)
-    'opinion_criticism': 0.3,     # Phê bình ý kiến/quan điểm
-    'product_review': 0.4,        # Đánh giá sản phẩm/dịch vụ
-    'has_negation': 0.5,          # Có phủ định "không", "chẳng"
+    'opinion_criticism': 0.3,     # Criticism of ideas/views
+    'product_review': 0.4,        # Product/service evaluation
+    'has_negation': 0.5,          # Has negation like "không", "chẳng"
 }
 
 # ==================== HELPER FUNCTIONS - ENHANCED ====================
 
 def get_all_toxic_words():
-    """Lấy tất cả từ toxic"""
+    """Get all toxic words"""
     return (
         SEVERE_PROFANITY + 
         SEVERE_INSULTS + 
@@ -594,7 +784,7 @@ def get_all_toxic_words():
     )
 
 def get_critical_words():
-    """Lấy từ nghiêm trọng nhất - auto reject"""
+    """Get most severe words - auto reject"""
     return (
         SEVERE_PROFANITY + 
         SEVERE_INSULTS +
@@ -605,7 +795,7 @@ def get_critical_words():
     )
 
 def get_hate_speech_words():
-    """Lấy từ hate speech"""
+    """Get hate speech words"""
     return (
         HATE_LGBTQ +
         HATE_RACISM +

@@ -88,7 +88,7 @@ async def client_login(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail={
                     "code": "INVALID_CREDENTIALS",
-                    "message": "Email hoặc mật khẩu không đúng"
+                    "message": "Incorrect email or password"
                 }
             )
         
@@ -98,7 +98,7 @@ async def client_login(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail={
                     "code": "INVALID_CREDENTIALS",
-                    "message": "Email hoặc mật khẩu không đúng"
+                    "message": "Incorrect email or password"
                 }
             )
         
@@ -108,7 +108,7 @@ async def client_login(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={
                     "code": "CLIENT_SUSPENDED",
-                    "message": "Tài khoản của bạn đã bị tạm ngưng"
+                    "message": "Your account has been suspended"
                 }
             )
         
@@ -133,7 +133,7 @@ async def client_login(
                     "created_at": client.created_at.isoformat() if client.created_at else None
                 }
             },
-            message="Đăng nhập thành công"
+            message="Login successful"
         )
     
     except HTTPException:
@@ -144,7 +144,7 @@ async def client_login(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
                 "code": "INTERNAL_ERROR",
-                "message": "Đăng nhập thất bại"
+                "message": "Login failed"
             }
         )
 
@@ -210,7 +210,7 @@ async def get_client_stats(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
                 "code": "INTERNAL_ERROR",
-                "message": "Không thể lấy thống kê"
+                "message": "Could not retrieve statistics"
             }
         )
 
@@ -271,7 +271,7 @@ async def get_client_jobs(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
                 "code": "INTERNAL_ERROR",
-                "message": "Không thể lấy danh sách jobs"
+                "message": "Could not retrieve jobs list"
             }
         )
 
@@ -303,7 +303,7 @@ async def update_webhook_url(
                 "webhook_url": client.webhook_url,
                 "updated_at": client.updated_at.isoformat() if client.updated_at else None
             },
-            message="Cập nhật webhook URL thành công"
+            message="Webhook URL updated successfully"
         )
     
     except Exception as e:
@@ -313,7 +313,7 @@ async def update_webhook_url(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
                 "code": "INTERNAL_ERROR",
-                "message": "Không thể cập nhật webhook URL"
+                "message": "Could not update webhook URL"
             }
         )
 
@@ -335,7 +335,7 @@ async def update_webhook_with_apikey(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail={
                     "code": "INVALID_API_KEY",
-                    "message": "API Key không hợp lệ"
+                    "message": "Invalid API Key"
                 }
             )
         
@@ -344,7 +344,7 @@ async def update_webhook_with_apikey(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail={
                     "code": "CLIENT_SUSPENDED",
-                    "message": "Tài khoản đã bị tạm ngưng"
+                    "message": "Account has been suspended"
                 }
             )
         
@@ -362,7 +362,7 @@ async def update_webhook_with_apikey(
                 "webhook_url": client.webhook_url,
                 "updated_at": client.updated_at.isoformat() if client.updated_at else None
             },
-            message="Webhook URL đã được cập nhật thành công"
+            message="Webhook URL updated successfully"
         )
     
     except HTTPException:
@@ -374,6 +374,6 @@ async def update_webhook_with_apikey(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail={
                 "code": "INTERNAL_ERROR",
-                "message": "Không thể cập nhật webhook URL"
+                "message": "Could not update webhook URL"
             }
         )

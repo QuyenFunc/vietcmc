@@ -121,12 +121,12 @@ def is_text_valid(text: str, min_length: int = 1) -> tuple[bool, Optional[str]]:
     """
     # Check if text is empty
     if not text or not text.strip():
-        return False, "Text rỗng"
+        return False, "Empty text"
     
     # Check length - allow short texts (1 word minimum)
     words = text.split()
     if len(words) < min_length:
-        return False, "Text quá ngắn"
+        return False, "Text too short"
     
     # For very short texts (1-2 words), skip language detection
     # as it's unreliable for short strings
@@ -134,11 +134,11 @@ def is_text_valid(text: str, min_length: int = 1) -> tuple[bool, Optional[str]]:
         # Check language
         lang = detect_language(text)
         if lang not in ['vi', 'en', 'unknown']:
-            return False, f"Ngôn ngữ không hỗ trợ: {lang}"
+            return False, f"Unsupported language: {lang}"
     
     # Check spam
     if is_spam(text):
-        return False, "Phát hiện spam/ký tự đặc biệt quá mức"
+        return False, "Spam/excessive special characters detected"
     
     return True, None
 

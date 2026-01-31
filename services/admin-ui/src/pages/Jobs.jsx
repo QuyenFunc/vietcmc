@@ -5,7 +5,7 @@ import apiClient from '../utils/apiClient'
 export default function Jobs() {
   const queryClient = useQueryClient()
   const [showConfirm, setShowConfirm] = useState(false)
-  
+
   const { data: jobsData, isLoading, error } = useQuery({
     queryKey: ['jobs'],
     queryFn: async () => {
@@ -14,29 +14,29 @@ export default function Jobs() {
     },
     refetchInterval: 5000,
   })
-  
+
   const clearJobsMutation = useMutation({
     mutationFn: async () => {
       const res = await apiClient.delete('/admin/jobs/clear')
       return res.data
     },
     onSuccess: (data) => {
-      alert(`✅ Đã xóa ${data.data.deleted_count} jobs thành công!`)
+      alert(`✅ Deleted ${data.data.deleted_count} jobs successfully!`)
       queryClient.invalidateQueries(['jobs'])
       setShowConfirm(false)
     },
     onError: (error) => {
-      alert(`❌ Lỗi: ${error.message}`)
+      alert(`❌ Error: ${error.message}`)
     }
   })
-  
+
   const jobs = jobsData?.jobs || []
   const totalJobs = jobsData?.total || 0
-  
+
   const queuedCount = jobs.filter(j => j.status === 'queued').length
   const processingCount = jobs.filter(j => j.status === 'processing').length
   const completedCount = jobs.filter(j => j.status === 'completed').length
-  
+
   if (isLoading) {
     return (
       <div className="px-4 py-6 sm:px-0 flex justify-center items-center min-h-screen">
@@ -55,12 +55,12 @@ export default function Jobs() {
       </div>
     )
   }
-  
+
   return (
     <div className="px-4 py-6 sm:px-0">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Jobs Queue Monitor</h1>
-        
+
         <div className="flex gap-2">
           <div className="text-sm text-gray-600 py-2 px-3 bg-gray-100 rounded">
             Total: <span className="font-bold">{totalJobs}</span> jobs
@@ -78,31 +78,31 @@ export default function Jobs() {
       {showConfirm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-6 max-w-md mx-4">
-            <h3 className="text-lg font-bold text-gray-900 mb-2">⚠️ Xác nhận xóa</h3>
+            <h3 className="text-lg font-bold text-gray-900 mb-2">⚠️ Confirm Delete</h3>
             <p className="text-gray-600 mb-4">
-              Bạn có chắc chắn muốn xóa tất cả <strong>{totalJobs} jobs</strong> khỏi database?
+              Are you sure you want to delete all <strong>{totalJobs} jobs</strong> from the database?
               <br />
-              <span className="text-red-600 text-sm">Hành động này không thể hoàn tác!</span>
+              <span className="text-red-600 text-sm">This action cannot be undone!</span>
             </p>
             <div className="flex gap-3">
               <button
                 onClick={() => setShowConfirm(false)}
                 className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition"
               >
-                Hủy
+                Cancel
               </button>
               <button
                 onClick={() => clearJobsMutation.mutate()}
                 disabled={clearJobsMutation.isPending}
                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition disabled:opacity-50"
               >
-                {clearJobsMutation.isPending ? 'Đang xóa...' : 'Xóa tất cả'}
+                {clearJobsMutation.isPending ? 'Deleting...' : 'Delete All'}
               </button>
             </div>
           </div>
         </div>
       )}
-      
+
       <div className="bg-white shadow sm:rounded-lg mb-6">
         <div className="px-4 py-5 sm:p-6">
           <div className="grid grid-cols-3 gap-4 text-center">
@@ -121,7 +121,7 @@ export default function Jobs() {
           </div>
         </div>
       </div>
-      
+
       <div className="bg-white shadow overflow-hidden sm:rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
@@ -160,22 +160,20 @@ export default function Jobs() {
                     {job.text}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                      job.status === 'completed' ? 'bg-green-100 text-green-800' :
-                      job.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
-                      job.status === 'failed' ? 'bg-red-100 text-red-800' :
-                      'bg-gray-100 text-gray-800'
-                    }`}>
+                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${job.status === 'completed' ? 'bg-green-100 text-green-800' :
+                        job.status === 'processing' ? 'bg-yellow-100 text-yellow-800' :
+                          job.status === 'failed' ? 'bg-red-100 text-red-800' :
+                            'bg-gray-100 text-gray-800'
+                      }`}>
                       {job.status}
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {job.moderation_result && (
-                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                        job.moderation_result === 'allowed' ? 'bg-green-100 text-green-800' :
-                        job.moderation_result === 'review' ? 'bg-yellow-100 text-yellow-800' :
-                        'bg-red-100 text-red-800'
-                      }`}>
+                      <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${job.moderation_result === 'allowed' ? 'bg-green-100 text-green-800' :
+                          job.moderation_result === 'review' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-red-100 text-red-800'
+                        }`}>
                         {job.moderation_result}
                       </span>
                     )}

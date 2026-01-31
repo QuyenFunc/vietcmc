@@ -1,59 +1,71 @@
 export default function ProductCard() {
   return (
-    <div className="p-8">
-      <div className="flex flex-col md:flex-row gap-8">
-        {/* Product Image */}
-        <div className="w-full md:w-64 h-64 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-lg">
-          <span className="text-8xl">📱</span>
-        </div>
-
-        {/* Product Details */}
-        <div className="flex-1">
-          <h2 className="text-3xl font-bold text-gray-900 mb-3">
-            iPhone 15 Pro Max - 256GB
+    <div className="card p-6">
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h2 className="text-2xl font-bold text-dark-text-primary mb-2">
+            AI Content Analyzer
           </h2>
-          
-          <div className="text-4xl font-bold text-indigo-600 mb-3">
-            29.990.000₫
-          </div>
-
-          <div className="flex items-center gap-2 mb-4">
-            <div className="text-2xl text-yellow-400">
-              ⭐⭐⭐⭐⭐
-            </div>
-            <span className="text-gray-600">
-              (4.8/5 - 1,234 đánh giá)
+          <div className="flex items-center gap-3">
+            <span className="badge bg-accent-primary/10 text-accent-primary border border-accent-primary/20">
+              v2.0.1
+            </span>
+            <span className="badge bg-status-success/10 text-status-success border border-status-success/20">
+              ACTIVE
             </span>
           </div>
-
-          <div className="space-y-2 text-gray-700">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold">🔥 Chip:</span>
-              <span>A17 Pro - Hiệu năng vượt trội</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-semibold">📸 Camera:</span>
-              <span>48MP - Chụp ảnh chuyên nghiệp</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-semibold">📱 Màn hình:</span>
-              <span>Super Retina XDR 6.7 inch</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <span className="font-semibold">⚡ Chất liệu:</span>
-              <span>Khung Titanium - Siêu bền</span>
-            </div>
-          </div>
-
-          <div className="mt-6 flex gap-3">
-            <button className="px-6 py-3 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-xl font-semibold hover:shadow-lg transform hover:-translate-y-0.5 transition">
-              Mua ngay
-            </button>
-            <button className="px-6 py-3 border-2 border-indigo-600 text-indigo-600 rounded-xl font-semibold hover:bg-indigo-50 transition">
-              Thêm vào giỏ
-            </button>
-          </div>
         </div>
+        <div className="text-right">
+          <div className="text-3xl font-bold text-dark-text-primary">99.8%</div>
+          <div className="text-dark-text-tertiary text-sm">Accuracy Rate</div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <div className="bg-dark-primary/50 rounded-lg p-3 border border-dark-border">
+          <div className="text-dark-text-tertiary text-xs mb-1">Speed</div>
+          <div className="text-lg font-bold text-dark-text-primary">0.3ms</div>
+        </div>
+
+        <div className="bg-dark-primary/50 rounded-lg p-3 border border-dark-border">
+          <div className="text-dark-text-tertiary text-xs mb-1">Uptime</div>
+          <div className="text-lg font-bold text-dark-text-primary">99.9%</div>
+        </div>
+
+        <div className="bg-dark-primary/50 rounded-lg p-3 border border-dark-border">
+          <div className="text-dark-text-tertiary text-xs mb-1">Processed</div>
+          <div className="text-lg font-bold text-dark-text-primary">2.5M+</div>
+        </div>
+      </div>
+
+      <div className="space-y-3 mb-6">
+        <div className="flex items-center gap-3 text-sm text-dark-text-secondary">
+          <svg className="w-4 h-4 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <span>Multi-language support (50+ languages)</span>
+        </div>
+        <div className="flex items-center gap-3 text-sm text-dark-text-secondary">
+          <svg className="w-4 h-4 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <span>Real-time content analysis</span>
+        </div>
+        <div className="flex items-center gap-3 text-sm text-dark-text-secondary">
+          <svg className="w-4 h-4 text-accent-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
+          <span>Advanced toxicity detection</span>
+        </div>
+      </div>
+
+      <div className="flex gap-3">
+        <button className="btn-primary flex-1 flex items-center justify-center gap-2">
+          View Analytics
+        </button>
+        <button className="btn-secondary flex-1 flex items-center justify-center gap-2">
+          Configure
+        </button>
       </div>
     </div>
   )

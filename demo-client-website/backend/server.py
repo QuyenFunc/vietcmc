@@ -1,5 +1,5 @@
 """
-Backend Flask Server - API cho Demo Client Website
+Backend Flask Server - API for Demo Client Website
 """
 from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
@@ -9,6 +9,8 @@ from datetime import datetime
 import json
 import requests
 import os
+import psycopg2
+from psycopg2.extras import RealDictCursor
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DIST_DIR = os.path.abspath(os.path.join(BASE_DIR, '..', 'dist'))
@@ -20,7 +22,7 @@ app = Flask(
 )
 CORS(app)
 
-# Storage (trong production dùng database)
+# Storage (use database in production)
 comments = []
 moderation_results = {}
 
@@ -29,12 +31,21 @@ VIETCMS_API_URL = os.getenv('VIETCMS_API_URL', 'http://localhost:8000/api/v1')
 VIETCMS_API_KEY = os.getenv('VIETCMS_API_KEY', 'YOUR_API_KEY_HERE')
 HMAC_SECRET = os.getenv('HMAC_SECRET', 'YOUR_HMAC_SECRET_HERE')
 
-# Runtime config (có thể override bằng API)
+# Runtime config (can be overridden via API)
 runtime_config = {
     'api_url': VIETCMS_API_URL,
     'api_key': VIETCMS_API_KEY,
     'hmac_secret': HMAC_SECRET,
     'webhook_url': ''
+}
+
+# Database Configuration
+DB_CONFIG = {
+    'host': os.getenv('POSTGRES_HOST', 'postgres'),
+    'port': os.getenv('POSTGRES_PORT', '5432'),
+    'database': os.getenv('POSTGRES_DB', 'vietcms_moderation'),
+    'user': os.getenv('POSTGRES_USER', 'vietcms'),
+    'password': os.getenv('POSTGRES_PASSWORD', 'vietcms_password_123')
 }
 
 
@@ -49,7 +60,7 @@ def mask_secret(value: str, visible: int = 4) -> str:
     return f"{value[:visible]}...{value[-visible:]}"
 
 def get_config():
-    """Get current config (runtime hoặc env)"""
+    """Get current config (runtime or env)"""
     return {
         'api_url': runtime_config.get('api_url', VIETCMS_API_URL),
         'api_key': runtime_config.get('api_key', VIETCMS_API_KEY),
@@ -59,7 +70,7 @@ def get_config():
 
 
 def verify_webhook_signature(body, signature):
-    """Verify HMAC signature từ VietCMS"""
+    """Verify HMAC signature from VietCMS"""
     if not signature or not signature.startswith('sha256='):
         return False
     
@@ -78,26 +89,121 @@ def verify_webhook_signature(body, signature):
 
 @app.route('/api/comments', methods=['GET'])
 def get_comments():
-    """Get all comments"""
-    return jsonify({'comments': comments})
+    """Get all comments from database"""
+    try:
+        conn = psycopg2.connect(**DB_CONFIG)
+        cursor = conn.cursor(cursor_factory=RealDictCursor)
+        
+        # Query ALL jobs directly from database
+        query = """
+            SELECT 
+                job_id,
+                comment_id,
+                text,
+                job_metadata,
+                status,
+                moderation_result,
+                sentiment,
+                confidence_score,
+                reasoning,
+                processing_duration_ms,
+                created_at
+            FROM jobs
+            ORDER BY created_at DESC
+        """
+        cursor.execute(query)
+        jobs = cursor.fetchall()
+        
+        # Convert database jobs to comment format
+        all_comments = []
+        for job in jobs:
+            # Extract author from metadata if available
+            author = 'Anonymous'
+            if job['job_metadata'] and isinstance(job['job_metadata'], dict):
+                author = job['job_metadata'].get('author', 'Anonymous')
+            
+            comment = {
+                'id': job['comment_id'],
+                'job_id': job['job_id'],
+                'author': author,
+                'text': job['text'],
+                'created_at': job['created_at'].isoformat() if job['created_at'] else None,
+                'status': 'pending',
+                'moderation_result': None,
+                'visible': True
+            }
+            
+            # Update status based on job status
+            if job['status'] == 'completed':
+                comment['status'] = 'moderated'
+                comment['moderation_result'] = job['moderation_result']
+                comment['sentiment'] = job['sentiment']
+                comment['confidence'] = job['confidence_score']
+                comment['reasoning'] = job['reasoning']
+                comment['processing_time'] = job['processing_duration_ms']
+                
+                # Extract type from metadata if available
+                if job['job_metadata'] and isinstance(job['job_metadata'], dict):
+                    comment['type'] = job['job_metadata'].get('type', 'text')
+                
+                # Set visibility based on moderation result
+                if job['moderation_result'] == 'reject':
+                    comment['visible'] = False
+                elif job['moderation_result'] == 'review':
+                    comment['visible'] = False
+                    comment['needs_review'] = True
+                else:
+                    comment['visible'] = True
+            elif job['status'] == 'processing' or job['status'] == 'queued':
+                comment['status'] = 'processing'
+            elif job['status'] == 'failed':
+                comment['status'] = 'error'
+            
+            all_comments.append(comment)
+        
+        cursor.close()
+        conn.close()
+        
+        print(f"✅ Loaded {len(all_comments)} comments from database")
+        return jsonify({'comments': all_comments})
+        
+    except Exception as e:
+        print(f"⚠️ Database query failed: {e}")
+        import traceback
+        traceback.print_exc()
+        # Fall back to in-memory comments if database query fails
+        return jsonify({'comments': comments})
 
 
 @app.route('/api/comments/clear', methods=['DELETE'])
 def clear_comments():
     """Clear all comments (useful after load testing)"""
-    global comments, moderation_results
-    
-    count = len(comments)
-    comments = []
-    moderation_results = {}
-    
-    print(f"\n🗑️ Cleared {count} comments from demo website")
-    
-    return jsonify({
-        'success': True,
-        'deleted_count': count,
-        'message': f'Successfully cleared {count} comments'
-    })
+    try:
+        conn = psycopg2.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+        
+        # Delete all jobs
+        cursor.execute("DELETE FROM jobs")
+        deleted_count = cursor.rowcount
+        
+        conn.commit()
+        cursor.close()
+        conn.close()
+        
+        print(f"\n🗑️ Cleared {deleted_count} comments from database")
+        
+        return jsonify({
+            'success': True,
+            'deleted_count': deleted_count,
+            'message': f'Successfully cleared {deleted_count} comments'
+        })
+        
+    except Exception as e:
+        print(f"❌ Failed to clear comments: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 
 @app.route('/api/submit-comment', methods=['POST'])
@@ -109,6 +215,7 @@ def submit_comment():
         'id': f'comment_{len(comments) + 1}',
         'author': data.get('author', 'Anonymous'),
         'text': data.get('text', ''),
+        'type': data.get('type', 'text'),
         'status': 'pending',
         'created_at': datetime.now().isoformat(),
         'moderation_result': None
@@ -128,12 +235,15 @@ def submit_comment():
             api_base_url = (config.get('api_url') or VIETCMS_API_URL).rstrip('/')
             
             # Prepare request body
+            comment_type = data.get('type', 'text')
             payload = {
                 'comment_id': comment['id'],
                 'text': comment['text'],
+                'type': comment_type,
                 'metadata': {
                     'author': comment['author'],
-                    'source': 'demo-website'
+                    'source': 'demo-website',
+                    'type': comment_type
                 }
             }
             body = json.dumps(payload).encode('utf-8')
@@ -180,7 +290,7 @@ def submit_comment():
 def receive_webhook():
     """Receive moderation result from VietCMS"""
     
-    # Verify signature (skip nếu chưa set HMAC_SECRET)
+    # Verify signature (skip if HMAC_SECRET is not set)
     config = get_config()
     if config['hmac_secret'] != "YOUR_HMAC_SECRET_HERE":
         signature = request.headers.get('X-Hub-Signature-256')
@@ -211,6 +321,8 @@ def receive_webhook():
     sentiment = data.get('sentiment')
     confidence = data.get('confidence')
     reasoning = data.get('reasoning')
+    extracted_text = data.get('extracted_text')  # OCR from image
+    transcribed_text = data.get('transcribed_text')  # From audio
     
     # Save result
     moderation_results[job_id] = data
@@ -223,6 +335,8 @@ def receive_webhook():
             comment['sentiment'] = sentiment
             comment['confidence'] = confidence
             comment['reasoning'] = reasoning
+            comment['extracted_text'] = extracted_text  # Save OCR text
+            comment['transcribed_text'] = transcribed_text  # Save audio transcript
             
             if moderation_result == 'reject':
                 comment['visible'] = False
@@ -299,13 +413,13 @@ def save_api_config():
     if not api_url.lower().startswith('http'):
         return jsonify({
             'success': False,
-            'error': 'API URL phải là HTTP/HTTPS hợp lệ'
+            'error': 'API URL must be a valid HTTP/HTTPS'
         }), 400
 
     if not api_key or api_key == 'YOUR_API_KEY_HERE' or not hmac_secret or hmac_secret == 'YOUR_HMAC_SECRET_HERE':
         return jsonify({
             'success': False,
-            'error': 'API Key và HMAC Secret không được để trống'
+            'error': 'API Key and HMAC Secret cannot be empty'
         }), 400
 
     # Update runtime config
@@ -350,7 +464,7 @@ def save_api_config():
     
     return jsonify({
         'success': True,
-        'message': 'Cấu hình đã được lưu thành công'
+        'message': 'Configuration saved successfully'
     })
 
 
@@ -366,7 +480,7 @@ def clear_api_config():
     
     return jsonify({
         'success': True,
-        'message': 'Đã xóa cấu hình'
+        'message': 'Configuration deleted'
     })
 
 
@@ -385,17 +499,17 @@ def test_api_config():
             not hmac_secret or hmac_secret == 'YOUR_HMAC_SECRET_HERE'):
         return jsonify({
             'success': False,
-            'error': 'API Key và HMAC Secret không được để trống'
+            'error': 'API Key and HMAC Secret cannot be empty'
         }), 400
 
     if not api_url.lower().startswith('http'):
         return jsonify({
             'success': False,
-            'error': 'API URL không hợp lệ'
+            'error': 'Invalid API URL'
         }), 400
     
     try:
-        # Test submit với text rỗng để kiểm tra credentials
+        # Test submit with empty text to check credentials
         test_payload = {
             'text': 'test connection',
             'comment_id': 'test_' + str(int(datetime.now().timestamp()))
@@ -422,28 +536,28 @@ def test_api_config():
         if response.status_code in [200, 202]:
             return jsonify({
                 'success': True,
-                'message': 'Kết nối thành công!'
+                'message': 'Connection successful!'
             })
         elif response.status_code == 401:
             return jsonify({
                 'success': False,
-                'error': 'API Key hoặc HMAC Secret không đúng'
+                'error': 'Incorrect API Key or HMAC Secret'
             }), 401
         else:
             return jsonify({
                 'success': False,
-                'error': f'API trả về lỗi: {response.status_code}'
+                'error': f'API returned error: {response.status_code}'
             }), 400
             
     except requests.exceptions.Timeout:
         return jsonify({
             'success': False,
-            'error': 'Timeout - không thể kết nối đến VietCMS API'
+            'error': 'Timeout - could not connect to VietCMS API'
         }), 408
     except Exception as e:
         return jsonify({
             'success': False,
-            'error': f'Lỗi kết nối: {str(e)}'
+            'error': f'Connection error: {str(e)}'
         }), 500
 
 
@@ -468,10 +582,10 @@ if __name__ == '__main__':
     print("="*60)
     print("📍 Full stack: http://localhost:5000")
     print("📍 Webhook: http://localhost:5000/webhooks/moderation")
-    print("\n💡 Để có HTTPS cho webhook:")
+    print("\n💡 To get HTTPS for webhook:")
     print("   ngrok http 5000")
-    print("   hoặc cloudflared tunnel --url http://localhost:5000")
+    print("   or cloudflared tunnel --url http://localhost:5000")
     print("="*60 + "\n")
-    
+
     app.run(host='0.0.0.0', port=5000, debug=True)
 

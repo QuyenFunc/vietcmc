@@ -222,10 +222,15 @@ class ModerationInference:
         text_lower = text.lower()
         normalized_text = preprocess_vietnamese_text(text_lower)
         
-        # Check for allowed exceptions first
+        # Collect allowed words found in text (for skipping in pattern matching)
+        # Don't return early - just track which words should be excluded
+        allowed_words_in_text = set()
         for phrase in ALLOWED_PHRASES:
             if phrase in normalized_text:
-                return 0, [], {'reason': 'Allowed phrase'}
+                allowed_words_in_text.add(phrase)
+                # Also add individual words from phrase
+                for word in phrase.split():
+                    allowed_words_in_text.add(word)
         
         # ===== CONTEXT DETECTION =====
         context_flags = {
@@ -298,7 +303,7 @@ class ModerationInference:
                 category_hits['hate_lgbtq'].append(word)
                 severity_score += SEVERITY_SCORES['HATE_LGBTQ']
                 context_flags['targeting_group'] = True
-                auto_reject_reason = f"Hate speech: Phân biệt đối xử LGBTQ+ - {word}"
+                auto_reject_reason = f"Hate speech: LGBTQ+ discrimination - {word}"
         
         # Racism
         for word in HATE_RACISM:
@@ -308,7 +313,7 @@ class ModerationInference:
                 category_hits['hate_racism'].append(word)
                 severity_score += SEVERITY_SCORES['HATE_RACISM']
                 context_flags['targeting_group'] = True
-                auto_reject_reason = f"Hate speech: Phân biệt chủng tộc - {word}"
+                auto_reject_reason = f"Hate speech: Racial discrimination - {word}"
         
         # Religious hate
         for word in HATE_RELIGION:
@@ -318,7 +323,7 @@ class ModerationInference:
                 category_hits['hate_religion'].append(word)
                 severity_score += SEVERITY_SCORES['HATE_RELIGION']
                 context_flags['targeting_group'] = True
-                auto_reject_reason = f"Hate speech: Phân biệt tôn giáo - {word}"
+                auto_reject_reason = f"Hate speech: Religious discrimination - {word}"
         
         # Sexism
         for word in HATE_SEXISM:
@@ -328,7 +333,7 @@ class ModerationInference:
                 category_hits['hate_sexism'].append(word)
                 severity_score += SEVERITY_SCORES['HATE_SEXISM']
                 context_flags['targeting_group'] = True
-                auto_reject_reason = f"Hate speech: Phân biệt giới tính - {word}"
+                auto_reject_reason = f"Hate speech: Gender discrimination - {word}"
         
         # ===== 2. SEXUAL CONTENT DETECTION =====
         # Explicit sexual content
@@ -338,7 +343,7 @@ class ModerationInference:
                 flagged_words.append(word)
                 category_hits['sexual_explicit'].append(word)
                 severity_score += SEVERITY_SCORES['SEXUAL_EXPLICIT']
-                auto_reject_reason = f"Nội dung khiêu dâm rõ ràng - {word}"
+                auto_reject_reason = f"Explicit pornographic content - {word}"
         
         # Suggestive sexual content
         for word in SEXUAL_SUGGESTIVE:
@@ -354,7 +359,7 @@ class ModerationInference:
                 flagged_words.append(word)
                 category_hits['sexual_solicitation'].append(word)
                 severity_score += SEVERITY_SCORES['SEXUAL_SOLICITATION']
-                auto_reject_reason = f"Gạ gẫm tình dục - {word}"
+                auto_reject_reason = f"Sexual solicitation - {word}"
         
         # ===== 3. PROFANITY & INSULTS =====
         # Severe profanity
@@ -428,9 +433,27 @@ class ModerationInference:
             matches = re.findall(pattern, normalized_text, re.IGNORECASE)
             if matches:
                 for match in matches:
+                    # CRITICAL: Skip if match is an allowed word (e.g., "các" matched by "cặc" pattern)
+                    match_lower = match.lower() if isinstance(match, str) else str(match).lower()
+                    if match_lower in allowed_words_in_text:
+                        logger.debug(f"Skipping allowed word in pattern match: {match}")
+                        continue
+                    # Also skip common Vietnamese words that are false positives
+                    common_words = {
+                        'các', 'cách', 'cục', 'cắc', 'cạc',  # Similar to cặc
+                        'người', 'nguồn', 'nguyên', 'ngủ',   # Similar to ngu
+                        'dùng', 'dũng', 'dũ',                 # Similar to đụ
+                        'lòng', 'lồng', 'long',               # Similar to lồn
+                        'đột',                                # Random
+                        'đề', 'để', 'đe', 'dề', 'dể', 'de',   # Similar to đéo
+                        'deo', 'đeo'                          # đeo (wear) is NOT đéo
+                    }
+                    if match_lower in common_words:
+                        logger.debug(f"Skipping common Vietnamese word: {match}")
+                        continue
                     flagged_words.append(match)
                     category_hits['patterns'].append(match)
-                severity_score += SEVERITY_SCORES['TOXIC_PATTERNS'] * len(matches)
+                severity_score += SEVERITY_SCORES['TOXIC_PATTERNS'] * len([m for m in matches if m.lower() not in allowed_words_in_text and m.lower() not in common_words])
         
         # ===== APPLY CONTEXT MULTIPLIERS =====
         original_score = severity_score
@@ -529,12 +552,12 @@ class ModerationInference:
         # Determine action based on severity score
         if severity_score >= REJECT_THRESHOLD:
             # Auto reject - severe toxic content
-            top_flags = flagged_words[:3] if len(flagged_words) <= 3 else flagged_words[:2] + [f'và {len(flagged_words)-2} từ khác']
+            top_flags = flagged_words[:3] if len(flagged_words) <= 3 else flagged_words[:2] + [f'and {len(flagged_words)-2} other words']
             return {
                 'sentiment': 'negative',
                 'moderation_result': 'reject',
                 'confidence': min(0.95, 0.75 + (severity_score / 100)),
-                'reasoning': f'Vi phạm nghiêm trọng - Phát hiện từ ngữ: {", ".join(top_flags)} (Điểm: {severity_score})',
+                'reasoning': f'Severe violation - Detected words: {", ".join(top_flags)} (Score: {severity_score})',
                 'flagged_words': flagged_words,
                 'toxicity_score': severity_score
             }
@@ -544,7 +567,7 @@ class ModerationInference:
                 'sentiment': 'negative',
                 'moderation_result': 'review',
                 'confidence': 0.7,
-                'reasoning': f'Nội dung cần xem xét - Phát hiện: {", ".join(flagged_words[:2])} (Điểm: {severity_score})',
+                'reasoning': f'Content needs review - Detected: {", ".join(flagged_words[:2])} (Score: {severity_score})',
                 'flagged_words': flagged_words,
                 'toxicity_score': severity_score
             }
@@ -576,7 +599,7 @@ class ModerationInference:
                     'sentiment': 'neutral',
                     'moderation_result': 'allowed',
                     'confidence': 0.75,
-                    'reasoning': 'Text ngắn, không phát hiện cảm xúc rõ ràng'
+                    'reasoning': 'Short text, no clear sentiment detected'
                 }
             
             # Determine moderation based on sentiment
@@ -586,16 +609,16 @@ class ModerationInference:
             if sentiment == 'positive':
                 moderation = 'allowed'
                 matched = ', '.join(sentiment_result['matched_positive'][:3])
-                reasoning = f'Tích cực - Phát hiện: {matched}' if matched else 'Tích cực'
+                reasoning = f'Positive - Detected: {matched}' if matched else 'Positive'
             elif sentiment == 'negative':
                 # Allow legitimate negative reviews/feedback
                 # Only flag if extremely toxic (score <= -20) or contains personal attacks
                 moderation = 'allowed'
                 matched = ', '.join(sentiment_result['matched_negative'][:3])
-                reasoning = f'Phản hồi tiêu cực - {matched}' if matched else 'Đánh giá tiêu cực, chấp nhận được'
+                reasoning = f'Negative feedback - {matched}' if matched else 'Negative review, acceptable'
             else:
                 moderation = 'allowed'
-                reasoning = 'Trung lập'
+                reasoning = 'Neutral'
             
             return {
                 'sentiment': sentiment,
@@ -622,12 +645,12 @@ class ModerationInference:
             
             if sentiment == 'positive':
                 matched = ', '.join(sentiment_result['matched_positive'][:3])
-                reasoning = f'Tích cực - {matched}' if matched else 'Nội dung tích cực'
+                reasoning = f'Positive - {matched}' if matched else 'Positive content'
             elif sentiment == 'negative':
                 matched = ', '.join(sentiment_result['matched_negative'][:3])
-                reasoning = f'Tiêu cực - {matched}' if matched else 'Nội dung tiêu cực'
+                reasoning = f'Negative - {matched}' if matched else 'Negative content'
             else:
-                reasoning = 'Nội dung trung lập'
+                reasoning = 'Neutral content'
             
             return {
                 'sentiment': sentiment,
@@ -703,18 +726,26 @@ class ModerationInference:
     def _generate_reasoning(self, sentiment: str, moderation: str, confidence: float) -> str:
         """Generate reasoning explanation"""
         reasons = {
-            ('positive', 'allowed'): 'Nội dung tích cực, không vi phạm',
-            ('neutral', 'allowed'): 'Nội dung trung lập, không vi phạm',
-            ('negative', 'allowed'): 'Đánh giá tiêu cực hợp lệ, không vi phạm',
-            ('positive', 'review'): 'Nội dung cần xem xét (độ tin cậy thấp)',
-            ('neutral', 'review'): 'Nội dung cần xem xét (độ tin cậy thấp)',
-            ('negative', 'review'): 'Nội dung cần xem xét (độ tin cậy thấp)',
+            ('positive', 'allowed'): 'Positive content, no violation',
+            ('neutral', 'allowed'): 'Neutral content, no violation',
+            ('negative', 'allowed'): 'Legitimate negative review, no violation',
+            ('positive', 'review'): 'Content needs review (low confidence)',
+            ('neutral', 'review'): 'Content needs review (low confidence)',
+            ('negative', 'review'): 'Content needs review (low confidence)',
         }
         
-        reason = reasons.get((sentiment, moderation), 'Không xác định')
+        reason = reasons.get((sentiment, moderation), 'Unknown')
         
         if confidence < 0.3:
-            reason += f" ({confidence:.2%} tin cậy)"
+            reason += f" ({confidence:.2%} confidence)"
         
         return reason
 
+    def batch_predict(self, texts: List[str], batch_size: int = 32) -> List[Dict[str, Any]]:
+        """
+        Batch prediction (compatibility wrapper)
+        """
+        results = []
+        for text in texts:
+            results.append(self.predict(text))
+        return results

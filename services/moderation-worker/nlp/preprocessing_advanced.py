@@ -47,7 +47,6 @@ TEENCODE_MAP = {
     'v': 'với',
     
     'nv': 'như vậy',
-    'nv': 'như vậy',
     'vay': 'vậy',
     
     'lm': 'làm',
@@ -138,7 +137,7 @@ OBFUSCATION_MAP = {
 OBFUSCATED_PATTERNS = {
     r'v\W*[a@]i?\W*l': 'vãi lồn',  # v@~i l, v**l, vai l
     r'd\W*[m3]\W*': 'đ.m',  # d*m, d.m, dm
-    r'c\W*[h]*\W*o': 'chó',  # ch*o, c.ho
+    r'c\W*[h]*\W*o': 'dog',  # dog, c.ho
     r'l\W*[o0]\W*n': 'lồn',  # l.on, l0n
     r'c\W*[a@]\W*c': 'cặc',  # c@c, c*c
     r'd\W*[i1]\W*t': 'đ*t',  # dit, d1t
@@ -148,35 +147,35 @@ OBFUSCATED_PATTERNS = {
 # ==================== EMOJI MAPPING ====================
 
 EMOJI_MAP = {
-    '😊': ' vui ',
-    '😃': ' vui ',
-    '😄': ' vui ',
-    '😁': ' vui ',
-    '🙂': ' vui ',
-    '😍': ' thích ',
-    '❤️': ' yêu ',
-    '💕': ' yêu ',
-    '💖': ' yêu ',
-    '👍': ' tốt ',
-    '👌': ' tốt ',
-    '✅': ' tốt ',
-    '✔️': ' tốt ',
+    '😊': ' happy ',
+    '😃': ' happy ',
+    '😄': ' happy ',
+    '😁': ' happy ',
+    '🙂': ' happy ',
+    '😍': ' like ',
+    '❤️': ' love ',
+    '💕': ' love ',
+    '💖': ' love ',
+    '👍': ' good ',
+    '👌': ' good ',
+    '✅': ' good ',
+    '✔️': ' good ',
     
-    '😢': ' buồn ',
-    '😭': ' buồn ',
-    '😔': ' buồn ',
-    '😞': ' buồn ',
-    '😠': ' tức ',
-    '😡': ' giận ',
-    '🤬': ' chửi ',
-    '😤': ' bực ',
-    '👎': ' tệ ',
-    '❌': ' không ',
-    '✖️': ' không ',
+    '😢': ' sad ',
+    '😭': ' sad ',
+    '😔': ' sad ',
+    '😞': ' sad ',
+    '😠': ' angry ',
+    '😡': ' angry ',
+    '🤬': ' curse ',
+    '😤': ' annoyed ',
+    '👎': ' bad ',
+    '❌': ' no ',
+    '✖️': ' no ',
     
-    '😐': ' bình thường ',
-    '😑': ' bình thường ',
-    '🤔': ' suy nghĩ ',
+    '😐': ' neutral ',
+    '😑': ' neutral ',
+    '🤔': ' thinking ',
 }
 
 
@@ -565,4 +564,3 @@ if __name__ == "__main__":
             print(f"PII detected: {pii}")
             masked = mask_pii(text, pii)
             print(f"Masked: {masked}")
-

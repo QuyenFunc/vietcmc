@@ -12,7 +12,7 @@ API_URL="${VIETCMS_API_URL:-http://localhost/api/v1}"
 DEMO_EMAIL="${DEMO_EMAIL:-demo@example.com}"
 DEMO_PASSWORD="${DEMO_PASSWORD:-demo123456}"
 DEMO_ORG="${DEMO_ORG:-Demo Organization}"
-WEBHOOK_URL="${WEBHOOK_URL:-http://demo-website:5001/webhooks/moderation}"
+WEBHOOK_URL="${WEBHOOK_URL:-http://demo-website:5000/webhooks/moderation}"
 
 echo ""
 echo "📋 Configuration:"

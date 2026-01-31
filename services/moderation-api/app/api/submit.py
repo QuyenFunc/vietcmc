@@ -17,7 +17,7 @@ router = APIRouter()
 
 
 @router.post("/submit", response_model=APIResponse, status_code=status.HTTP_202_ACCEPTED)
-@limiter.limit("100/minute")  # Limit to 100 requests per minute per IP/client
+@limiter.limit("10000/minute")  # Limit to 10000 requests per minute per IP/client
 async def submit_job(
     request: Request,
     job_request: JobSubmitRequest,
@@ -35,13 +35,18 @@ async def submit_job(
         # Generate job ID
         job_id = str(uuid.uuid4())
         
+        # Store type in metadata for persistence without schema change
+        metadata = job_request.metadata or {}
+        if 'type' not in metadata:
+            metadata['type'] = job_request.type
+
         # Create job record
         new_job = Job(
             job_id=job_id,
             client_id=client.id,
             comment_id=job_request.comment_id,
             text=job_request.text,
-            job_metadata=job_request.metadata,
+            job_metadata=metadata,
             status='queued'
         )
         
@@ -54,7 +59,8 @@ async def submit_job(
             "client_id": client.id,
             "comment_id": job_request.comment_id,
             "text": job_request.text,
-            "metadata": job_request.metadata or {},
+            "type": job_request.type,
+            "metadata": metadata,
             "created_at": datetime.utcnow().isoformat()
         }
         

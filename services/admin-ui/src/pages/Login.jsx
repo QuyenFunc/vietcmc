@@ -7,19 +7,19 @@ export default function Login() {
   const [password, setPassword] = useState('admin123')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  
+
   const navigate = useNavigate()
   const { setAuth } = useAuthStore()
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
-    
+
     try {
       const API_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost/api/v1'
       const payload = { email, password }
-      
+
       // Attempt admin login first
       const adminResponse = await fetch(`${API_URL}/admin/login`, {
         method: 'POST',
@@ -28,15 +28,15 @@ export default function Login() {
         },
         body: JSON.stringify(payload),
       })
-      
+
       const adminData = await adminResponse.json().catch(() => ({}))
-      
+
       if (adminResponse.ok && adminData.success && adminData.token) {
         setAuth(adminData.user, adminData.token)
         navigate('/')
         return
       }
-      
+
       if (adminResponse.status === 401) {
         // Fallback: try client login with the same credentials
         const clientResponse = await fetch(`${API_URL}/client/login`, {
@@ -47,25 +47,25 @@ export default function Login() {
           body: JSON.stringify(payload),
         })
         const clientData = await clientResponse.json().catch(() => ({}))
-        
+
         if (clientResponse.ok && clientData.success && clientData.data?.token) {
           localStorage.setItem('client_token', clientData.data.token)
           localStorage.setItem('client_info', JSON.stringify(clientData.data.client))
           navigate('/client-dashboard')
           return
         }
-        
-        throw new Error(clientData.error?.message || clientData.detail || 'Đăng nhập thất bại')
+
+        throw new Error(clientData.error?.message || clientData.detail || 'Login failed')
       }
-      
-      throw new Error(adminData.detail || adminData.error?.message || 'Đăng nhập thất bại')
+
+      throw new Error(adminData.detail || adminData.error?.message || 'Login failed')
     } catch (err) {
-      setError(err.message || 'Đăng nhập thất bại')
+      setError(err.message || 'Login failed')
     } finally {
       setLoading(false)
     }
   }
-  
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -77,13 +77,13 @@ export default function Login() {
             Vietnamese Comment Moderation Service
           </p>
         </div>
-        
+
         {error && (
           <div className="rounded-md bg-red-50 p-4">
             <p className="text-sm text-red-800">{error}</p>
           </div>
         )}
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="rounded-md shadow-sm -space-y-px">
             <div>
@@ -113,7 +113,7 @@ export default function Login() {
               />
             </div>
           </div>
-          
+
           <div>
             <button
               type="submit"
@@ -124,15 +124,15 @@ export default function Login() {
             </button>
           </div>
         </form>
-        
+
         <div className="text-center">
           <p className="text-sm text-gray-600">
-            Chưa có tài khoản?{' '}
+            Don't have an account?{' '}
             <a
               href="/register"
               className="font-medium text-indigo-600 hover:text-indigo-500"
             >
-              Đăng ký Client ngay
+              Register Client Now
             </a>
           </p>
         </div>

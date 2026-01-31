@@ -11,28 +11,28 @@ class ModerationLabel(str, Enum):
     """Multi-label taxonomy for content moderation"""
     
     # Core toxicity categories
-    TOXICITY = "toxicity"  # Thô tục, xúc phạm chung
-    HATE = "hate"  # Ghét, nhắm tới nhóm/thuộc tính (sắc tộc, tôn giáo, giới tính...)
-    HARASSMENT = "harassment"  # Quấy rối cá nhân cụ thể, bắt nạt
-    THREAT = "threat"  # Đe dọa bạo lực, tự hại
-    SEXUAL = "sexual"  # Khiêu dâm, 18+, NSFW
+    TOXICITY = "toxicity"  # Profanity, general insults
+    HATE = "hate"  # Hate speech targeting groups (race, religion, gender, etc.)
+    HARASSMENT = "harassment"  # Personal harassment, bullying
+    THREAT = "threat"  # Violent threats, self-harm
+    SEXUAL = "sexual"  # Pornography, 18+, NSFW
     
     # Spam & fraud
-    SPAM = "spam"  # Quảng cáo, lừa đảo, scam
+    SPAM = "spam"  # Ads, fraud, scam
     
     # Privacy & data
-    PII = "pii"  # Personal Identifiable Information (SĐT, email, địa chỉ)
+    PII = "pii"  # Personal Identifiable Information (Phone, email, address)
     
     # Domain-specific (optional)
-    BRAND_POLICY = "brand_policy"  # Vi phạm chính sách thương hiệu
-    MISINFORMATION = "misinformation"  # Thông tin sai lệch (optional - nên pipeline riêng)
+    BRAND_POLICY = "brand_policy"  # Brand policy violations
+    MISINFORMATION = "misinformation"  # Misinformation (optional - best handled in separate pipeline)
 
 
 class SeverityLevel(int, Enum):
     """Severity levels for moderation actions"""
-    CLEAN = 0  # Sạch, cho qua
-    MODERATE = 1  # Trung bình - ẩn hoặc chờ duyệt
-    SEVERE = 2  # Nghiêm trọng - chặn ngay
+    CLEAN = 0  # Clean, allow
+    MODERATE = 1  # Moderate - hide or queue for review
+    SEVERE = 2  # Severe - reject immediately
 
 
 # Mapping from severity to actions
@@ -46,95 +46,95 @@ SEVERITY_ACTIONS = {
 # Label descriptions for training data annotation
 LABEL_DESCRIPTIONS = {
     ModerationLabel.TOXICITY: {
-        "vi": "Ngôn từ thô tục, xúc phạm, chửi thề không nhắm vào nhóm cụ thể",
+        "vi": "Profanity, offensive language, general insults",
         "en": "Profanity, offensive language, general insults",
         "examples": ["đồ ngu", "mẹ kiếp", "đ*o", "vl", "đ.m"],
         "severity": {
-            0: "Không có từ thô tục",
-            1: "Từ thô tục nhẹ (đ.m, vl...)",
-            2: "Từ thô tục nặng, lặp lại nhiều lần"
+            0: "No profanity",
+            1: "Mild profanity (đ.m, vl...)",
+            2: "Severe profanity, repeated"
         }
     },
     ModerationLabel.HATE: {
-        "vi": "Ghét bỏ, kỳ thị nhóm người dựa trên sắc tộc, tôn giáo, giới tính, khuynh hướng tình dục",
+        "vi": "Hate speech targeting groups based on race, religion, gender, sexual orientation",
         "en": "Hate speech targeting groups based on race, religion, gender, sexual orientation",
         "examples": ["khỉ đen", "đồ đạo chó", "đồ đồng tính biến thái"],
         "severity": {
-            0: "Không có hate speech",
-            1: "Định kiến nhẹ, đánh giá tiêu cực nhóm",
-            2: "Hate speech rõ ràng, kêu gọi bạo lực"
+            0: "No hate speech",
+            1: "Mild bias, negative group evaluation",
+            2: "Clear hate speech, inciting violence"
         }
     },
     ModerationLabel.HARASSMENT: {
-        "vi": "Quấy rối, bắt nạt cá nhân cụ thể",
+        "vi": "Harassment, bullying targeting specific individuals",
         "en": "Harassment, bullying targeting specific individuals",
         "examples": ["mày xấu vãi", "@user này ngu vl", "lũ bạn mày toàn rác"],
         "severity": {
-            0: "Không quấy rối",
-            1: "Chế giễu, châm chọc",
-            2: "Quấy rối nghiêm trọng, đe dọa"
+            0: "No harassment",
+            1: "Mocking, teasing",
+            2: "Severe harassment, threats"
         }
     },
     ModerationLabel.THREAT: {
-        "vi": "Đe dọa bạo lực, tự hại, gây nguy hiểm",
+        "vi": "Threats of violence, self-harm, danger",
         "en": "Threats of violence, self-harm, danger",
         "examples": ["tao sẽ giết mày", "đập chết", "tự tử đi"],
         "severity": {
-            0: "Không có đe dọa",
-            1: "Đe dọa mơ hồ",
-            2: "Đe dọa rõ ràng, nguy hiểm"
+            0: "No threats",
+            1: "Vague threats",
+            2: "Clear, dangerous threats"
         }
     },
     ModerationLabel.SEXUAL: {
-        "vi": "Nội dung khiêu dâm, tình dục, 18+",
+        "vi": "Sexual content, pornography, NSFW",
         "en": "Sexual content, pornography, NSFW",
         "examples": ["địt", "chịch", "lồn", "cặc", "link sex"],
         "severity": {
-            0: "Không có nội dung tình dục",
-            1: "Gợi dục nhẹ, ám chỉ",
-            2: "Khiêu dâm rõ ràng"
+            0: "No sexual content",
+            1: "Mildly suggestive",
+            2: "Explicit pornography"
         }
     },
     ModerationLabel.SPAM: {
-        "vi": "Quảng cáo, spam, lừa đảo, scam",
+        "vi": "Spam, ads, scams, fraud",
         "en": "Spam, ads, scams, fraud",
         "examples": ["inbox mua hàng", "kiếm tiền online", "cần người làm part-time"],
         "severity": {
-            0: "Không spam",
-            1: "Quảng cáo nhẹ, tự promote",
-            2: "Spam rõ ràng, lừa đảo"
+            0: "No spam",
+            1: "Mild advertising, self-promotion",
+            2: "Clear spam, fraud"
         }
     },
     ModerationLabel.PII: {
-        "vi": "Thông tin cá nhân (SĐT, email, địa chỉ, CMND...)",
+        "vi": "Personal Identifiable Information (phone, email, address, ID)",
         "en": "Personal Identifiable Information (phone, email, address, ID)",
         "examples": ["0123456789", "user@gmail.com", "123 Lê Lợi Q1"],
         "severity": {
-            0: "Không có PII",
-            1: "PII không nhạy cảm (email công khai)",
-            2: "PII nhạy cảm (SĐT, CMND, địa chỉ)"
+            0: "No PII",
+            1: "Non-sensitive PII (public email)",
+            2: "Sensitive PII (Phone, ID, address)"
         }
     },
     ModerationLabel.BRAND_POLICY: {
-        "vi": "Vi phạm chính sách thương hiệu (từ khóa đối thủ, nội dung cấm...)",
+        "vi": "Brand policy violations (competitor keywords, banned content)",
         "en": "Brand policy violations (competitor keywords, banned content)",
         "examples": ["shopee rẻ hơn", "lazada tốt hơn"],
         "severity": {
-            0: "Không vi phạm",
-            1: "Nhắc đến đối thủ",
-            2: "Quảng cáo đối thủ rõ ràng"
+            0: "No violation",
+            1: "Mentioning competitors",
+            2: "Explicit competitor advertising"
         }
     },
     ModerationLabel.MISINFORMATION: {
-        "vi": "Thông tin sai lệch, tin giả (KHUYẾN NGHỊ: pipeline riêng)",
+        "vi": "Misinformation, fake news (RECOMMENDED: separate pipeline)",
         "en": "Misinformation, fake news (RECOMMENDED: separate pipeline)",
         "examples": ["covid không tồn tại", "vắc xin gây tự kỷ"],
         "severity": {
-            0: "Thông tin chính xác",
-            1: "Thông tin chưa kiểm chứng",
-            2: "Thông tin sai lệch rõ ràng"
+            0: "Accurate information",
+            1: "Unverified information",
+            2: "Clear misinformation"
         },
-        "note": "Rất khó, nên tách pipeline riêng với fact-checking"
+        "note": "Very difficult, recommend separate fact-checking pipeline"
     }
 }
 
@@ -193,7 +193,7 @@ def combine_predictions(labels: List[str], severities: List[int]) -> Dict:
             "action": "allowed",
             "severity": 0,
             "triggered_labels": [],
-            "reasoning": "Nội dung sạch, không vi phạm"
+            "reasoning": "Clean content, no violation"
         }
     
     # Get max severity
@@ -209,7 +209,7 @@ def combine_predictions(labels: List[str], severities: List[int]) -> Dict:
     
     # Generate reasoning
     label_names = ", ".join(critical_labels)
-    reasoning = f"Phát hiện vi phạm: {label_names} (mức {max_severity})"
+    reasoning = f"Violation detected: {label_names} (level {max_severity})"
     
     return {
         "action": action,

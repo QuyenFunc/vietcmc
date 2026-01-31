@@ -6,14 +6,14 @@ export default function ClientLogin() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-  
+
   const navigate = useNavigate()
-  
+
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLoading(true)
     setError('')
-    
+
     try {
       const response = await fetch('/api/v1/client/login', {
         method: 'POST',
@@ -22,28 +22,28 @@ export default function ClientLogin() {
         },
         body: JSON.stringify({ email, password }),
       })
-      
+
       const data = await response.json()
-      
+
       if (!response.ok) {
-        throw new Error(data.error?.message || 'Đăng nhập thất bại')
+        throw new Error(data.error?.message || 'Login failed')
       }
-      
+
       if (data.success && data.data.token) {
-        // Lưu token vào localStorage
+        // Save token to localStorage
         localStorage.setItem('client_token', data.data.token)
         localStorage.setItem('client_info', JSON.stringify(data.data.client))
         navigate('/client-dashboard')
       } else {
-        setError('Phản hồi không hợp lệ từ server')
+        setError('Invalid response from server')
       }
     } catch (err) {
-      setError(err.message || 'Đăng nhập thất bại')
+      setError(err.message || 'Login failed')
     } finally {
       setLoading(false)
     }
   }
-  
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full space-y-8">
@@ -53,14 +53,14 @@ export default function ClientLogin() {
             VietCMS Client Portal
           </h2>
           <p className="text-gray-600">
-            Đăng nhập để xem thống kê và quản lý API của bạn
+            Log in to view your statistics and manage your API integration
           </p>
         </div>
-        
+
         {/* Form Card */}
         <div className="bg-white rounded-2xl shadow-xl p-8">
           <h3 className="text-2xl font-bold text-gray-900 mb-6">
-            Đăng nhập Client
+            Client Login
           </h3>
 
           {error && (
@@ -77,7 +77,7 @@ export default function ClientLogin() {
               </div>
             </div>
           )}
-          
+
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="email" className="block text-sm font-semibold text-gray-700 mb-2">
@@ -97,7 +97,7 @@ export default function ClientLogin() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-semibold text-gray-700 mb-2">
-                Mật khẩu
+                Password
               </label>
               <input
                 id="password"
@@ -110,7 +110,7 @@ export default function ClientLogin() {
                 placeholder="••••••••"
               />
             </div>
-            
+
             <button
               type="submit"
               disabled={loading}
@@ -122,24 +122,24 @@ export default function ClientLogin() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                   </svg>
-                  Đang đăng nhập...
+                  Logging in...
                 </>
               ) : (
-                'Đăng nhập'
+                'Log In'
               )}
             </button>
           </form>
 
           <div className="mt-6 text-center text-sm text-gray-600">
             <p>
-              Chưa có tài khoản?{' '}
+              Don't have an account?{' '}
               <a href="/register" className="text-blue-600 hover:text-blue-700 font-semibold">
-                Đăng ký ngay
+                Register Now
               </a>
             </p>
             <p className="mt-2">
               <Link to="/login" className="text-gray-500 hover:text-gray-700">
-                Đăng nhập Admin
+                Admin Login
               </Link>
             </p>
           </div>

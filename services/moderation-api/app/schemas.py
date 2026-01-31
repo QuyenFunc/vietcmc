@@ -21,7 +21,9 @@ class ClientUpdateWebhookRequest(BaseModel):
 
 
 class JobSubmitRequest(BaseModel):
-    text: str = Field(..., min_length=1, max_length=10000)
+    # max_length increased to 10MB to support large base64 images/audio
+    text: str = Field(..., min_length=1, max_length=10_000_000)
+    type: str = Field("text", pattern="^(text|image|audio)$")
     comment_id: Optional[str] = Field(None, max_length=255)
     metadata: Optional[Dict[str, Any]] = None
 

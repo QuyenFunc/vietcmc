@@ -20,9 +20,19 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
-# Database setup
-engine = create_engine(config.DATABASE_URL)
+# Database setup with connection pooling
+engine = create_engine(
+    config.DATABASE_URL,
+    pool_size=50,
+    max_overflow=20,
+    pool_timeout=30,
+    pool_pre_ping=True
+)
 SessionLocal = sessionmaker(bind=engine)
+
+# Webhook rate limiting: track recent webhook sends
+recent_webhooks = {}  # {client_id: [timestamp1, timestamp2, ...]}
+MAX_WEBHOOKS_PER_MINUTE = 10  # Only send 10 webhooks per minute per client
 
 
 def generate_hmac_signature(secret: str, body: bytes) -> str:
@@ -124,18 +134,82 @@ async def process_webhook(message: aio_pika.IncomingMessage):
                     "timestamp": job_data.get('completed_at', datetime.utcnow().isoformat())
                 }
                 
-                # Attempt webhook delivery with retry
-                for attempt in range(1, config.WEBHOOK_MAX_RETRIES + 1):
-                    logger.info(f"Webhook attempt {attempt}/{config.WEBHOOK_MAX_RETRIES} for job {job_id}")
+                # Selective webhook delivery: only send to external URLs if within rate limit
+                should_send_webhook = True
+                now = datetime.utcnow()
+                
+                # Check if webhook URL is external (ngrok, cloudflare, etc.)
+                is_external = any(domain in webhook_url for domain in ['ngrok', 'cloudflare', 'trycloudflare'])
+                
+                if is_external:
+                    # Rate limit external webhooks
+                    if client_id not in recent_webhooks:
+                        recent_webhooks[client_id] = []
                     
-                    success, status_code, response_body, response_time_ms = await send_webhook(
-                        webhook_url,
-                        hmac_secret,
-                        payload,
-                        attempt
-                    )
+                    # Clean old timestamps (older than 1 minute)
+                    recent_webhooks[client_id] = [
+                        ts for ts in recent_webhooks[client_id]
+                        if (now - ts).total_seconds() < 60
+                    ]
                     
-                    # Log webhook delivery
+                    # Check rate limit
+                    if len(recent_webhooks[client_id]) >= MAX_WEBHOOKS_PER_MINUTE:
+                        should_send_webhook = False
+                        logger.info(f"Skipping webhook for job {job_id} - rate limit reached ({MAX_WEBHOOKS_PER_MINUTE}/min)")
+                    else:
+                        recent_webhooks[client_id].append(now)
+                
+                # Attempt webhook delivery with retry (only if should_send_webhook is True)
+                if should_send_webhook:
+                    for attempt in range(1, config.WEBHOOK_MAX_RETRIES + 1):
+                        logger.info(f"Webhook attempt {attempt}/{config.WEBHOOK_MAX_RETRIES} for job {job_id}")
+                        
+                        success, status_code, response_body, response_time_ms = await send_webhook(
+                            webhook_url,
+                            hmac_secret,
+                            payload,
+                            attempt
+                        )
+                        
+                        # Log webhook delivery
+                        db.execute(text("""
+                            INSERT INTO webhook_logs (
+                                job_id, client_id, webhook_url, request_payload,
+                                request_headers, response_status_code, response_body,
+                                response_time_ms, attempt_number, status, error_message
+                            ) VALUES (
+                                :job_id, :client_id, :webhook_url, :request_payload,
+                                :request_headers, :response_status_code, :response_body,
+                                :response_time_ms, :attempt_number, :status, :error_message
+                            )
+                        """), {
+                            "job_id": job_id,
+                            "client_id": client_id,
+                            "webhook_url": webhook_url,
+                            "request_payload": json.dumps(payload),
+                            "request_headers": json.dumps({"X-Hub-Signature-256": "***"}),
+                            "response_status_code": status_code if status_code else None,
+                            "response_body": response_body,
+                            "response_time_ms": response_time_ms,
+                            "attempt_number": attempt,
+                            "status": "success" if success else ("retrying" if attempt < config.WEBHOOK_MAX_RETRIES else "failed"),
+                            "error_message": response_body if not success else None
+                        })
+                        db.commit()
+                        
+                        if success:
+                            logger.info(f"Webhook delivered successfully for job {job_id}")
+                            break
+                        
+                        # Wait before retry (exponential backoff)
+                        if attempt < config.WEBHOOK_MAX_RETRIES:
+                            wait_time = 5 * (2 ** (attempt - 1))  # 5s, 10s, 20s
+                            logger.info(f"Retrying in {wait_time}s...")
+                            await asyncio.sleep(wait_time)
+                    else:
+                        logger.error(f"Webhook failed after {config.WEBHOOK_MAX_RETRIES} attempts for job {job_id}")
+                else:
+                    # Log skipped webhook (rate limited)
                     db.execute(text("""
                         INSERT INTO webhook_logs (
                             job_id, client_id, webhook_url, request_payload,
@@ -152,26 +226,14 @@ async def process_webhook(message: aio_pika.IncomingMessage):
                         "webhook_url": webhook_url,
                         "request_payload": json.dumps(payload),
                         "request_headers": json.dumps({"X-Hub-Signature-256": "***"}),
-                        "response_status_code": status_code if status_code else None,
-                        "response_body": response_body,
-                        "response_time_ms": response_time_ms,
-                        "attempt_number": attempt,
-                        "status": "success" if success else ("retrying" if attempt < config.WEBHOOK_MAX_RETRIES else "failed"),
-                        "error_message": response_body if not success else None
+                        "response_status_code": None,
+                        "response_body": "Skipped - rate limited",
+                        "response_time_ms": 0,
+                        "attempt_number": 0,
+                        "status": "skipped",
+                        "error_message": f"Rate limited: {MAX_WEBHOOKS_PER_MINUTE}/min"
                     })
                     db.commit()
-                    
-                    if success:
-                        logger.info(f"Webhook delivered successfully for job {job_id}")
-                        break
-                    
-                    # Wait before retry (exponential backoff)
-                    if attempt < config.WEBHOOK_MAX_RETRIES:
-                        wait_time = 5 * (2 ** (attempt - 1))  # 5s, 10s, 20s
-                        logger.info(f"Retrying in {wait_time}s...")
-                        await asyncio.sleep(wait_time)
-                else:
-                    logger.error(f"Webhook failed after {config.WEBHOOK_MAX_RETRIES} attempts for job {job_id}")
             
             finally:
                 db.close()

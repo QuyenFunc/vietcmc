@@ -15,7 +15,7 @@ router = APIRouter()
 
 
 @router.get("/status/{job_id}", response_model=APIResponse)
-@limiter.limit("200/minute")  # Higher limit for status checks
+@limiter.limit("10000/minute")  # Higher limit for status checks
 async def get_job_status(
     job_id: str,
     request: Request,

@@ -14,7 +14,7 @@ data = {
     "organization_name": "Demo Organization",
     "email": "demo@example.com",
     "password": "demo123456",
-    "webhook_url": "http://demo-website:5001/webhooks/moderation"
+    "webhook_url": "http://demo-website:5000/webhooks/moderation"
 }
 
 print("Registering demo client...")
